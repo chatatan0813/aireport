@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { groupSnapshotDanRiwayat, mapPayrollRows } from "./transform";
+import { groupSnapshotDanRiwayat, mapPayrollRows, formatCapaian, parseLaporanAi } from "./transform";
 import type { SheetRow } from "./server/sheets";
 
 function aiRow(overrides: Partial<SheetRow> = {}): SheetRow {
@@ -128,5 +128,26 @@ describe("mapPayrollRows", () => {
 
   it("returns an empty array for no rows", () => {
     expect(mapPayrollRows([])).toEqual([]);
+  });
+});
+
+describe("formatCapaian", () => {
+  it("formats Rupiah with prefix", () => {
+    expect(formatCapaian(1500000, "Rupiah")).toBe("Rp 1.500.000");
+  });
+
+  it("formats non-Rupiah with unit suffix", () => {
+    expect(formatCapaian(1119, "kepala")).toBe("1.119 kepala");
+  });
+});
+
+describe("parseLaporanAi", () => {
+  it("splits the 4 labeled sections", () => {
+    const teks = "RINGKASAN: a\nEVALUASI: b\nREKOMENDASI: c\nINSIGHT: d";
+    expect(parseLaporanAi(teks)).toEqual({ ringkasan: "a", evaluasi: "b", rekomendasi: "c", insight: "d" });
+  });
+
+  it("returns empty strings for missing sections", () => {
+    expect(parseLaporanAi("")).toEqual({ ringkasan: "", evaluasi: "", rekomendasi: "", insight: "" });
   });
 });

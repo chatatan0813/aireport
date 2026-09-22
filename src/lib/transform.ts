@@ -119,3 +119,31 @@ export function mapPayrollRows(rows: SheetRow[]): PayrollEntri[] {
     .sort((a, b) => (a._ts < b._ts ? 1 : -1))
     .map(({ _ts, ...rest }) => rest);
 }
+
+export function formatCapaian(nilai: number, satuan: string): string {
+  if (satuan === "Rupiah") return "Rp " + nilai.toLocaleString("id-ID", { maximumFractionDigits: 0 });
+  return nilai.toLocaleString("id-ID", { maximumFractionDigits: 0 }) + " " + satuan;
+}
+
+export type LaporanAiBagian = { ringkasan: string; evaluasi: string; rekomendasi: string; insight: string };
+
+export function parseLaporanAi(teks: string): LaporanAiBagian {
+  const labels = ["RINGKASAN:", "EVALUASI:", "REKOMENDASI:", "INSIGHT:"] as const;
+  const ambil = (label: (typeof labels)[number]): string => {
+    const i = teks.indexOf(label);
+    if (i < 0) return "";
+    let end = teks.length;
+    for (const other of labels) {
+      if (other === label) continue;
+      const j = teks.indexOf(other, i + label.length);
+      if (j >= 0 && j < end) end = j;
+    }
+    return teks.slice(i + label.length, end).trim();
+  };
+  return {
+    ringkasan: ambil("RINGKASAN:"),
+    evaluasi: ambil("EVALUASI:"),
+    rekomendasi: ambil("REKOMENDASI:"),
+    insight: ambil("INSIGHT:"),
+  };
+}
