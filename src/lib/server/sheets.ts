@@ -30,6 +30,8 @@ async function readTab(range: string): Promise<SheetRow[]> {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     range,
+    valueRenderOption: "UNFORMATTED_VALUE",
+    dateTimeRenderOption: "FORMATTED_STRING",
   });
 
   const values = res.data.values ?? [];
@@ -41,7 +43,7 @@ async function readTab(range: string): Promise<SheetRow[]> {
   return dataRows.map((row) => {
     const obj: SheetRow = {};
     header.forEach((col, i) => {
-      obj[col] = row[i] ?? "";
+      obj[col] = String(row[i] ?? "");
     });
     return obj;
   });
@@ -72,7 +74,7 @@ async function readCached(cacheKey: string, range: string, forceRefresh?: boolea
 }
 
 export async function getAiReportingRows(opts?: { forceRefresh?: boolean }): Promise<SheetReadResult> {
-  return readCached("ai-reporting", "Untitled!A:M", opts?.forceRefresh);
+  return readCached("ai-reporting", "Untitled!A:Z", opts?.forceRefresh);
 }
 
 export async function getPayrollRows(opts?: { forceRefresh?: boolean }): Promise<SheetReadResult> {

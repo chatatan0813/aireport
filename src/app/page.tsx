@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import DivisiCard from "@/components/DivisiCard";
 import OmzetChart from "@/components/OmzetChart";
 import RiwayatTable from "@/components/RiwayatTable";
@@ -18,6 +19,7 @@ const TABS = ["Ringkasan", "Riwayat", "Payroll"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [data, setData] = useState<LaporanResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("Ringkasan");
@@ -25,12 +27,22 @@ export default function DashboardPage() {
   useEffect(() => {
     fetch("/api/laporan")
       .then((res) => {
+        if (res.status === 401) {
+          router.push("/login");
+          return null;
+        }
         if (!res.ok) throw new Error("gagal");
         return res.json();
       })
-      .then(setData)
+      .then((json) => {
+        if (json) setData(json);
+      })
       .catch(() => setError("Gagal memuat data, hubungi admin"));
-  }, []);
+  }, [router]);
+
+  const handleLogout = () => {
+    fetch("/api/logout", { method: "POST" }).finally(() => router.push("/login"));
+  };
 
   if (error) {
     return <div className="p-8 text-red-600">{error}</div>;
@@ -42,7 +54,15 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-10">
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold text-slate-900">AI Reporting — Chatatan Group</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-2xl font-semibold text-slate-900">AI Reporting — Chatatan Group</h1>
+          <button
+            onClick={handleLogout}
+            className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-500 ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-700"
+          >
+            Keluar
+          </button>
+        </div>
         {data.stale && (
           <div className="mt-2 rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800 ring-1 ring-amber-200">
             Gagal memuat data terbaru, menampilkan data terakhir tersimpan.

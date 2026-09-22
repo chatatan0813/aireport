@@ -67,28 +67,47 @@ export function groupSnapshotDanRiwayat(rows: SheetRow[]): {
   riwayat: RiwayatEntri[];
 } {
   const riwayat: RiwayatEntri[] = rows
-    .map((row) => ({
+    .map((row, i) => ({
       ...toDivisi(row),
       jenisLaporan: row.jenis_laporan ?? "",
       rentangDari: row.rentang_dari ?? "",
       rentangSampai: row.rentang_sampai ?? "",
       tanggalGenerate: row.tanggal_generate ?? "",
+      _rowIndex: i,
     }))
-    .sort((a, b) => (a.tanggalGenerate < b.tanggalGenerate ? 1 : -1));
+    .sort((a, b) => b._rowIndex - a._rowIndex)
+    .map(({ _rowIndex, ...rest }) => rest);
 
   if (riwayat.length === 0) {
     return { snapshotTerbaru: null, riwayat: [] };
   }
 
-  const latestTs = riwayat[0].tanggalGenerate;
-  const snapshotRows = riwayat.filter((r) => r.tanggalGenerate === latestTs);
+  const newest = riwayat[0];
+  const periodRows = riwayat.filter(
+    (r) =>
+      r.jenisLaporan === newest.jenisLaporan &&
+      r.rentangDari === newest.rentangDari &&
+      r.rentangSampai === newest.rentangSampai
+  );
+
+  // Real Sheet data can contain multiple re-runs of the same period (e.g.
+  // several Dekade2 runs for the same date range). Keep only the latest
+  // row per division. `periodRows` is already ordered newest-first (by
+  // original Sheet row index, not the tanggal_generate string — see C2),
+  // so the first occurrence of each `nama` is the one to keep.
+  const seenDivisi = new Set<string>();
+  const snapshotRows = periodRows.filter((r) => {
+    if (seenDivisi.has(r.nama)) return false;
+    seenDivisi.add(r.nama);
+    return true;
+  });
 
   return {
     snapshotTerbaru: {
-      jenisLaporan: snapshotRows[0].jenisLaporan,
-      rentangDari: snapshotRows[0].rentangDari,
-      rentangSampai: snapshotRows[0].rentangSampai,
-      tanggalGenerate: latestTs,
+      jenisLaporan: newest.jenisLaporan,
+      rentangDari: newest.rentangDari,
+      rentangSampai: newest.rentangSampai,
+      tanggalGenerate: newest.tanggalGenerate,
       divisi: snapshotRows.map((r) => ({
         nama: r.nama,
         omzet: r.omzet,
@@ -107,17 +126,17 @@ export function groupSnapshotDanRiwayat(rows: SheetRow[]): {
 
 export function mapPayrollRows(rows: SheetRow[]): PayrollEntri[] {
   return rows
-    .map((row) => ({
+    .map((row, i) => ({
       bulan: row.bulan ?? "",
       nama: row.nama ?? "",
       totalInsentif: parseNum(row.total_insentif),
       totalBonus: parseNum(row.total_bonus),
       totalThp: parseNum(row.total_thp),
       rincianDivisi: row.rincian_divisi ?? "",
-      _ts: row.tanggal_generate ?? "",
+      _rowIndex: i,
     }))
-    .sort((a, b) => (a._ts < b._ts ? 1 : -1))
-    .map(({ _ts, ...rest }) => rest);
+    .sort((a, b) => b._rowIndex - a._rowIndex)
+    .map(({ _rowIndex, ...rest }) => rest);
 }
 
 export function formatCapaian(nilai: number, satuan: string): string {

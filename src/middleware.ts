@@ -14,6 +14,9 @@ export async function middleware(req: NextRequest) {
   const valid = token ? await verifySessionToken(token) : false;
 
   if (!valid) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

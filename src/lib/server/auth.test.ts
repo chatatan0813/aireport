@@ -21,6 +21,10 @@ describe("isValidPassword", () => {
   it("returns false for different-length strings without throwing", () => {
     expect(isValidPassword("panjang-sekali", "pendek")).toBe(false);
   });
+
+  it("returns false without throwing when actual is a non-string JSON value", () => {
+    expect(isValidPassword("rahasia123", 42 as unknown as string)).toBe(false);
+  });
 });
 
 describe("session token", () => {
@@ -40,9 +44,14 @@ describe("session token", () => {
   });
 
   it("rejects a token signed with a different secret", async () => {
+    const original = process.env.SESSION_SECRET;
     const token = await createSessionToken();
     process.env.SESSION_SECRET = "a-completely-different-secret-value";
-    const ok = await verifySessionToken(token);
-    expect(ok).toBe(false);
+    try {
+      const ok = await verifySessionToken(token);
+      expect(ok).toBe(false);
+    } finally {
+      process.env.SESSION_SECRET = original;
+    }
   });
 });

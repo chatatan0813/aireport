@@ -3,6 +3,7 @@ import { SignJWT, jwtVerify } from "jose";
 
 export function isValidPassword(expected: string | undefined | null, actual: string | undefined | null): boolean {
   if (!expected || !actual) return false;
+  if (typeof expected !== "string" || typeof actual !== "string") return false;
   const a = Buffer.from(expected);
   const b = Buffer.from(actual);
   if (a.length !== b.length) return false;

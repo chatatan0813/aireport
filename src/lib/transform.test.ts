@@ -28,16 +28,56 @@ describe("groupSnapshotDanRiwayat", () => {
     expect(result.riwayat).toEqual([]);
   });
 
-  it("groups the 7 most recent rows sharing tanggal_generate into one snapshot", () => {
+  it("groups rows from one n8n run into one snapshot even when tanggal_generate differs by a few seconds per division", () => {
+    // Real Sheet rows from the same run are written 4-6 seconds apart per
+    // division, so tanggal_generate is NOT identical across them. Grouping
+    // must key on jenisLaporan+rentangDari+rentangSampai, not exact
+    // tanggal_generate string equality.
     const rows = [
       aiRow({ divisi: "CHTTN", tanggal_generate: "2026-09-22 08:00:00" }),
-      aiRow({ divisi: "KONVEKSI", tanggal_generate: "2026-09-22 08:00:00" }),
+      aiRow({ divisi: "KONVEKSI", tanggal_generate: "2026-09-22 08:00:04" }),
+      aiRow({ divisi: "ChatBarber Cempaka", tanggal_generate: "2026-09-22 08:00:09" }),
+      aiRow({ divisi: "ChatBarber Kramat", tanggal_generate: "2026-09-22 08:00:14" }),
+      aiRow({ divisi: "Waroeng Steak", tanggal_generate: "2026-09-22 08:00:19" }),
+      aiRow({ divisi: "Kedai Kopi", tanggal_generate: "2026-09-22 08:00:23" }),
+      aiRow({ divisi: "Toko Fashion", tanggal_generate: "2026-09-22 08:00:28" }),
       aiRow({ divisi: "CHTTN", tanggal_generate: "2026-09-03 08:00:00" }), // older snapshot, different run
     ];
     const result = groupSnapshotDanRiwayat(rows);
+    expect(result.snapshotTerbaru?.divisi.length).toBe(7);
+    expect(result.riwayat.length).toBe(8);
+  });
+
+  it("treats a later row as newest even when its hour is not zero-padded and lexicographically smaller (the exact C2 bug)", () => {
+    // "2026-09-22 9:23:06" > "2026-09-22 12:10:47" as a STRING (because "9" >
+    // "1"), which is backwards. Ordering must use the original Sheet row
+    // order (append order), not a string comparison of tanggal_generate.
+    const rows = [
+      aiRow({ divisi: "CHTTN", tanggal_generate: "2026-09-22 9:23:06" }),
+      aiRow({ divisi: "CHTTN", rentang_dari: "2026-09-01", tanggal_generate: "2026-09-22 12:10:47" }),
+    ];
+    const result = groupSnapshotDanRiwayat(rows);
+    // The later-appended (second) row must be treated as newest.
+    expect(result.riwayat[0].tanggalGenerate).toBe("2026-09-22 12:10:47");
+    expect(result.riwayat[1].tanggalGenerate).toBe("2026-09-22 9:23:06");
+    expect(result.snapshotTerbaru?.tanggalGenerate).toBe("2026-09-22 12:10:47");
+    expect(result.snapshotTerbaru?.rentangDari).toBe("2026-09-01");
+  });
+
+  it("dedupes duplicate re-runs of the same period for the same division, keeping only the newest per division", () => {
+    // The real Sheet contains multiple re-runs of the same period (e.g. 4
+    // separate Dekade2 runs for the same date range). Matching on period
+    // alone must not return duplicates for the same division.
+    const rows = [
+      aiRow({ divisi: "CHTTN", omzet: "100000000", tanggal_generate: "2026-09-22 08:00:00" }),
+      aiRow({ divisi: "CHTTN", omzet: "200000000", tanggal_generate: "2026-09-22 08:05:00" }), // re-run
+      aiRow({ divisi: "CHTTN", omzet: "300000000", tanggal_generate: "2026-09-22 08:10:00" }), // re-run
+      aiRow({ divisi: "KONVEKSI", omzet: "50000000", tanggal_generate: "2026-09-22 08:12:00" }),
+    ];
+    const result = groupSnapshotDanRiwayat(rows);
     expect(result.snapshotTerbaru?.divisi.length).toBe(2);
-    expect(result.snapshotTerbaru?.tanggalGenerate).toBe("2026-09-22 08:00:00");
-    expect(result.riwayat.length).toBe(3);
+    const chttn = result.snapshotTerbaru?.divisi.find((d) => d.nama === "CHTTN");
+    expect(chttn?.omzet).toBe(300000000); // the newest re-run, not the first
   });
 
   it("parses a numeric laba as a number", () => {
@@ -120,6 +160,19 @@ describe("mapPayrollRows", () => {
     const rows = [
       payrollRow({ nama: "Rizki", tanggal_generate: "2026-09-22 12:39:30" }),
       payrollRow({ nama: "Erwan", tanggal_generate: "2026-10-14 10:00:05" }),
+    ];
+    const result = mapPayrollRows(rows);
+    expect(result[0].nama).toBe("Erwan");
+    expect(result[1].nama).toBe("Rizki");
+  });
+
+  it("orders by original row (append) order, not a string comparison of a non-zero-padded hour", () => {
+    // "2026-09-22 9:15:00" > "2026-09-22 12:39:30" as a STRING, which is
+    // backwards. mapPayrollRows must sort by original row index, not by
+    // the tanggal_generate string.
+    const rows = [
+      payrollRow({ nama: "Rizki", tanggal_generate: "2026-09-22 9:15:00" }),
+      payrollRow({ nama: "Erwan", tanggal_generate: "2026-09-22 12:39:30" }),
     ];
     const result = mapPayrollRows(rows);
     expect(result[0].nama).toBe("Erwan");
