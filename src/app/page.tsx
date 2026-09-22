@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import DivisiCard from "@/components/DivisiCard";
 import OmzetChart from "@/components/OmzetChart";
+import RiwayatTable from "@/components/RiwayatTable";
+import PayrollTable from "@/components/PayrollTable";
 import type { SnapshotTerbaru, RiwayatEntri, PayrollEntri } from "@/lib/transform";
 
 type LaporanResponse = {
@@ -79,8 +81,8 @@ export default function DashboardPage() {
         <p className="text-slate-500">Belum ada laporan tersimpan.</p>
       )}
 
-      {tab === "Riwayat" && <div data-testid="riwayat-placeholder" />}
-      {tab === "Payroll" && <div data-testid="payroll-placeholder" />}
+      {tab === "Riwayat" && <RiwayatTable riwayat={data.riwayat} />}
+      {tab === "Payroll" && <PayrollTable payroll={data.payroll} />}
     </div>
   );
 }
