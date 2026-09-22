@@ -37,7 +37,8 @@ export type PayrollEntri = {
 };
 
 function parseLaba(raw: string | undefined): number | null {
-  if (raw === undefined || raw === null || raw === "") return null;
+  if (raw === undefined || raw === null) return null;
+  if (raw.trim() === "") return null;
   const n = Number(raw);
   return isFinite(n) ? n : null;
 }

@@ -62,6 +62,16 @@ describe("groupSnapshotDanRiwayat", () => {
     expect(result.snapshotTerbaru?.divisi[0].laba).toBe(-5564744);
   });
 
+  it("treats a genuine zero laba as the number 0, not null", () => {
+    const result = groupSnapshotDanRiwayat([aiRow({ laba: "0" })]);
+    expect(result.snapshotTerbaru?.divisi[0].laba).toBe(0);
+  });
+
+  it("treats a whitespace-only laba as null, not zero", () => {
+    const result = groupSnapshotDanRiwayat([aiRow({ laba: "   " })]);
+    expect(result.snapshotTerbaru?.divisi[0].laba).toBeNull();
+  });
+
   it("keeps satuan_target and capaian for non-Rupiah divisions", () => {
     const result = groupSnapshotDanRiwayat([
       aiRow({ divisi: "ChatBarber Cempaka", satuan_target: "kepala", capaian: "1119", target: "1550" }),
