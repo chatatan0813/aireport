@@ -33,7 +33,17 @@ describe("groupSnapshotDanRiwayat", () => {
     // division, so tanggal_generate is NOT identical across them. Grouping
     // must key on jenisLaporan+rentangDari+rentangSampai, not exact
     // tanggal_generate string equality.
+    //
+    // The first row below is a GENUINELY different period (Dekade1, not
+    // Bulanan) for the same division (CHTTN) as one of the 7 real rows, and
+    // is appended FIRST (oldest by row order) — this must be excluded from
+    // the snapshot purely by period mismatch, not by division-dedup (there
+    // is no other Dekade1 row for it to dedup against). If the period
+    // filter were broken and fell through to "everything sharing the
+    // overall newest row's tanggal_generate", divisi.length would come out
+    // wrong (either 8, or exclude a real Bulanan division instead).
     const rows = [
+      aiRow({ divisi: "CHTTN", jenis_laporan: "Dekade1", rentang_dari: "2026-08-01", rentang_sampai: "2026-08-10", tanggal_generate: "2026-08-15 08:00:00" }),
       aiRow({ divisi: "CHTTN", tanggal_generate: "2026-09-22 08:00:00" }),
       aiRow({ divisi: "KONVEKSI", tanggal_generate: "2026-09-22 08:00:04" }),
       aiRow({ divisi: "ChatBarber Cempaka", tanggal_generate: "2026-09-22 08:00:09" }),
@@ -41,10 +51,10 @@ describe("groupSnapshotDanRiwayat", () => {
       aiRow({ divisi: "Waroeng Steak", tanggal_generate: "2026-09-22 08:00:19" }),
       aiRow({ divisi: "Kedai Kopi", tanggal_generate: "2026-09-22 08:00:23" }),
       aiRow({ divisi: "Toko Fashion", tanggal_generate: "2026-09-22 08:00:28" }),
-      aiRow({ divisi: "CHTTN", tanggal_generate: "2026-09-03 08:00:00" }), // older snapshot, different run
     ];
     const result = groupSnapshotDanRiwayat(rows);
     expect(result.snapshotTerbaru?.divisi.length).toBe(7);
+    expect(result.snapshotTerbaru?.jenisLaporan).toBe("Bulanan");
     expect(result.riwayat.length).toBe(8);
   });
 
