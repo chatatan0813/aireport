@@ -31,17 +31,21 @@ export default function OmzetChart({ divisi }: { divisi: Divisi[] }) {
       {kelompok.map(([satuan, list]) => {
         const data = list.map((d) => ({ nama: d.nama, Capaian: d.capaian, Target: d.target }));
         return (
-          <div key={satuan} className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <h3 className="mb-4 font-semibold text-slate-900">{SATUAN_LABEL[satuan] ?? `Capaian vs Target (${satuan})`}</h3>
+          <div key={satuan} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+            <h3 className="font-display mb-4 font-semibold text-slate-100">{SATUAN_LABEL[satuan] ?? `Capaian vs Target (${satuan})`}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="nama" tick={{ fontSize: 11 }} />
-                <YAxis tickFormatter={(v) => formatRupiah(Number(v))} width={80} tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v) => formatNilai(Number(v), satuan)} />
-                <Legend />
-                <Bar dataKey="Capaian" fill="#0f172a" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Target" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f222a" />
+                <XAxis dataKey="nama" tick={{ fontSize: 11, fill: "#767c8a" }} stroke="#1f222a" />
+                <YAxis tickFormatter={(v) => formatRupiah(Number(v))} width={80} tick={{ fontSize: 11, fill: "#767c8a" }} stroke="#1f222a" />
+                <Tooltip
+                  formatter={(v) => formatNilai(Number(v), satuan)}
+                  contentStyle={{ background: "#14161c", border: "1px solid #1f222a", borderRadius: 8, color: "#e7e9ee" }}
+                  labelStyle={{ color: "#e7e9ee" }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12, color: "#767c8a" }} />
+                <Bar dataKey="Capaian" fill="#6fe3b4" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Target" fill="#2a2e38" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

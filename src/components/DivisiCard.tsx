@@ -6,49 +6,57 @@ import { formatRupiah } from "@/lib/rupiah";
 import { formatCapaian, parseLaporanAi } from "@/lib/transform";
 
 const STATUS_STYLE: Record<string, string> = {
-  Tercapai: "bg-green-100 text-green-800",
-  "Belum Tercapai": "bg-red-100 text-red-800",
-  "Target belum diatur": "bg-slate-100 text-slate-600",
+  Tercapai: "bg-emerald-950 text-emerald-400",
+  "Belum Tercapai": "bg-rose-950 text-rose-400",
+  "Target belum diatur": "bg-slate-800 text-slate-400",
 };
 
 export default function DivisiCard({ divisi }: { divisi: Divisi }) {
   const [open, setOpen] = useState(false);
   const bagian = parseLaporanAi(divisi.laporanAi);
-  const badgeClass = STATUS_STYLE[divisi.status] ?? "bg-slate-100 text-slate-600";
+  const badgeClass = STATUS_STYLE[divisi.status] ?? "bg-slate-800 text-slate-400";
+  const persen = divisi.target > 0 ? Math.min((divisi.capaian / divisi.target) * 100, 100) : 0;
 
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <div className="mb-3 flex items-start justify-between">
-        <h3 className="font-semibold text-slate-900">{divisi.nama}</h3>
-        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeClass}`}>{divisi.status}</span>
+    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="font-display font-semibold text-slate-100">{divisi.nama}</h3>
+        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass}`}>{divisi.status}</span>
       </div>
-      <dl className="space-y-1 text-sm">
+
+      <div className="tabular font-display text-2xl font-semibold text-slate-100">
+        {formatCapaian(divisi.capaian, divisi.satuanTarget)}
+        {divisi.target > 0 && (
+          <span className="ml-2 text-sm font-medium text-slate-500">/ {formatCapaian(divisi.target, divisi.satuanTarget)}</span>
+        )}
+      </div>
+
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-800">
+        <div className="h-full rounded-full bg-emerald-400" style={{ width: `${persen}%` }} />
+      </div>
+
+      <dl className="mt-4 space-y-1.5 text-sm">
         <div className="flex justify-between">
           <dt className="text-slate-500">Omzet</dt>
-          <dd className="font-medium text-slate-900">Rp {formatRupiah(divisi.omzet)}</dd>
+          <dd className="tabular font-medium text-slate-200">Rp {formatRupiah(divisi.omzet)}</dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-slate-500">Laba</dt>
-          <dd className="font-medium text-slate-900">{divisi.laba === null ? "—" : "Rp " + formatRupiah(divisi.laba)}</dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="text-slate-500">Capaian</dt>
-          <dd className="text-slate-700">{formatCapaian(divisi.capaian, divisi.satuanTarget)}</dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="text-slate-500">Target</dt>
-          <dd className="text-slate-700">{divisi.target > 0 ? formatCapaian(divisi.target, divisi.satuanTarget) : "belum diatur"}</dd>
+          <dd className={`tabular font-medium ${divisi.laba !== null && divisi.laba < 0 ? "text-rose-400" : "text-slate-200"}`}>
+            {divisi.laba === null ? "—" : "Rp " + formatRupiah(divisi.laba)}
+          </dd>
         </div>
       </dl>
-      <button onClick={() => setOpen((v) => !v)} className="mt-3 text-xs font-medium text-slate-500 hover:text-slate-800">
+
+      <button onClick={() => setOpen((v) => !v)} className="mt-4 text-xs font-medium text-slate-500 hover:text-slate-300">
         {open ? "Sembunyikan analisis AI ▲" : "Lihat analisis AI ▼"}
       </button>
       {open && (
-        <div className="mt-3 space-y-2 border-t border-slate-100 pt-3 text-sm text-slate-700">
-          <p><span className="font-medium">Ringkasan:</span> {bagian.ringkasan || "—"}</p>
-          <p><span className="font-medium">Evaluasi:</span> {bagian.evaluasi || "—"}</p>
-          <p><span className="font-medium">Rekomendasi:</span> {bagian.rekomendasi || "—"}</p>
-          <p><span className="font-medium">Insight:</span> {bagian.insight || "—"}</p>
+        <div className="mt-3 space-y-2 border-t border-slate-800 pt-3 text-sm text-slate-300">
+          <p><span className="font-medium text-slate-100">Ringkasan:</span> {bagian.ringkasan || "—"}</p>
+          <p><span className="font-medium text-slate-100">Evaluasi:</span> {bagian.evaluasi || "—"}</p>
+          <p><span className="font-medium text-slate-100">Rekomendasi:</span> {bagian.rekomendasi || "—"}</p>
+          <p><span className="font-medium text-slate-100">Insight:</span> {bagian.insight || "—"}</p>
         </div>
       )}
     </div>
