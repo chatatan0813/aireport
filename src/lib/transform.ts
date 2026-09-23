@@ -139,6 +139,80 @@ export function mapPayrollRows(rows: SheetRow[]): PayrollEntri[] {
     .map(({ _rowIndex, ...rest }) => rest);
 }
 
+export type PeriodeOption = {
+  jenisLaporan: string;
+  rentangDari: string;
+  rentangSampai: string;
+  label: string;
+};
+
+/**
+ * Distinct periods present in the history, newest-first. `riwayat` is
+ * already ordered newest-first (by original Sheet row index — see the C2
+ * fix in groupSnapshotDanRiwayat), so the first occurrence of each distinct
+ * (jenisLaporan, rentangDari, rentangSampai) combo is that period's most
+ * recent run.
+ */
+export function getPeriodeOptions(riwayat: RiwayatEntri[]): PeriodeOption[] {
+  const seen = new Set<string>();
+  const options: PeriodeOption[] = [];
+  for (const r of riwayat) {
+    const key = `${r.jenisLaporan}|${r.rentangDari}|${r.rentangSampai}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    options.push({
+      jenisLaporan: r.jenisLaporan,
+      rentangDari: r.rentangDari,
+      rentangSampai: r.rentangSampai,
+      label: `${r.jenisLaporan} (${r.rentangDari} s.d. ${r.rentangSampai})`,
+    });
+  }
+  return options;
+}
+
+/**
+ * Rebuilds a snapshot for an arbitrary chosen period from the full
+ * history, using the same "latest row per division, duplicates dropped"
+ * rule groupSnapshotDanRiwayat applies to the newest period. Returns null
+ * if no row matches (shouldn't happen for an option that came from
+ * getPeriodeOptions on the same `riwayat`, but callers reading these two
+ * functions independently should handle it).
+ */
+export function buildSnapshotForPeriode(riwayat: RiwayatEntri[], periode: PeriodeOption): SnapshotTerbaru | null {
+  const matching = riwayat.filter(
+    (r) =>
+      r.jenisLaporan === periode.jenisLaporan &&
+      r.rentangDari === periode.rentangDari &&
+      r.rentangSampai === periode.rentangSampai
+  );
+  if (matching.length === 0) return null;
+
+  const seenDivisi = new Set<string>();
+  const divisiRows = matching.filter((r) => {
+    if (seenDivisi.has(r.nama)) return false;
+    seenDivisi.add(r.nama);
+    return true;
+  });
+
+  return {
+    jenisLaporan: periode.jenisLaporan,
+    rentangDari: periode.rentangDari,
+    rentangSampai: periode.rentangSampai,
+    tanggalGenerate: divisiRows[0].tanggalGenerate,
+    divisi: divisiRows.map((r) => ({
+      nama: r.nama,
+      omzet: r.omzet,
+      laba: r.laba,
+      capaian: r.capaian,
+      target: r.target,
+      satuanTarget: r.satuanTarget,
+      status: r.status,
+      laporanAi: r.laporanAi,
+      sumberAi: r.sumberAi,
+    })),
+  };
+}
+
 export function formatCapaian(nilai: number, satuan: string): string {
   if (satuan === "Rupiah") return "Rp " + nilai.toLocaleString("id-ID", { maximumFractionDigits: 0 });
   return nilai.toLocaleString("id-ID", { maximumFractionDigits: 0 }) + " " + satuan;

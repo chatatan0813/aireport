@@ -6,7 +6,8 @@ import DivisiCard from "@/components/DivisiCard";
 import OmzetChart from "@/components/OmzetChart";
 import RiwayatTable from "@/components/RiwayatTable";
 import PayrollTable from "@/components/PayrollTable";
-import type { SnapshotTerbaru, RiwayatEntri, PayrollEntri } from "@/lib/transform";
+import type { SnapshotTerbaru, RiwayatEntri, PayrollEntri, PeriodeOption } from "@/lib/transform";
+import { getPeriodeOptions, buildSnapshotForPeriode } from "@/lib/transform";
 
 type LaporanResponse = {
   snapshotTerbaru: SnapshotTerbaru | null;
@@ -23,6 +24,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<LaporanResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("Ringkasan");
+  const [periodeKey, setPeriodeKey] = useState<string>("terbaru");
 
   useEffect(() => {
     fetch("/api/laporan")
@@ -51,6 +53,14 @@ export default function DashboardPage() {
     return <div className="p-8 text-slate-500">Memuat...</div>;
   }
 
+  const keyOf = (p: PeriodeOption) => `${p.jenisLaporan}|${p.rentangDari}|${p.rentangSampai}`;
+  const periodeOptions = getPeriodeOptions(data.riwayat);
+  const periodeDipilih = periodeOptions.find((p) => keyOf(p) === periodeKey);
+  const snapshotDitampilkan =
+    periodeKey === "terbaru" || !periodeDipilih
+      ? data.snapshotTerbaru
+      : (buildSnapshotForPeriode(data.riwayat, periodeDipilih) ?? data.snapshotTerbaru);
+
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-10">
       <header className="mb-6">
@@ -68,9 +78,9 @@ export default function DashboardPage() {
             Gagal memuat data terbaru, menampilkan data terakhir tersimpan.
           </div>
         )}
-        {data.snapshotTerbaru && (
+        {snapshotDitampilkan && (
           <p className="mt-1 text-sm text-slate-500">
-            {data.snapshotTerbaru.jenisLaporan} · {data.snapshotTerbaru.rentangDari} s.d. {data.snapshotTerbaru.rentangSampai} · dibuat {data.snapshotTerbaru.tanggalGenerate}
+            {snapshotDitampilkan.jenisLaporan} · {snapshotDitampilkan.rentangDari} s.d. {snapshotDitampilkan.rentangSampai} · dibuat {snapshotDitampilkan.tanggalGenerate}
           </p>
         )}
       </header>
@@ -87,17 +97,38 @@ export default function DashboardPage() {
         ))}
       </nav>
 
-      {tab === "Ringkasan" && data.snapshotTerbaru && (
+      {tab === "Ringkasan" && (
+        <div className="mb-4 max-w-xs">
+          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="periode">
+            Periode
+          </label>
+          <select
+            id="periode"
+            value={periodeKey}
+            onChange={(e) => setPeriodeKey(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          >
+            <option value="terbaru">Terbaru</option>
+            {periodeOptions.map((p) => (
+              <option key={keyOf(p)} value={keyOf(p)}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {tab === "Ringkasan" && snapshotDitampilkan && (
         <div className="space-y-6">
-          <OmzetChart divisi={data.snapshotTerbaru.divisi} />
+          <OmzetChart divisi={snapshotDitampilkan.divisi} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {data.snapshotTerbaru.divisi.map((d) => (
+            {snapshotDitampilkan.divisi.map((d) => (
               <DivisiCard key={d.nama} divisi={d} />
             ))}
           </div>
         </div>
       )}
-      {tab === "Ringkasan" && !data.snapshotTerbaru && (
+      {tab === "Ringkasan" && !snapshotDitampilkan && (
         <p className="text-slate-500">Belum ada laporan tersimpan.</p>
       )}
 

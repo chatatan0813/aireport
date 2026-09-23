@@ -6,6 +6,7 @@ import { formatRupiah } from "@/lib/rupiah";
 
 export default function PayrollTable({ payroll }: { payroll: PayrollEntri[] }) {
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [bulanFilter, setBulanFilter] = useState<string>("Semua");
 
   if (payroll.length === 0) {
     return (
@@ -15,9 +16,25 @@ export default function PayrollTable({ payroll }: { payroll: PayrollEntri[] }) {
     );
   }
 
+  // `payroll` is already newest-bulan-first, so the order bulan names are
+  // first encountered here is the order they should appear in the dropdown.
+  const bulanOptions = ["Semua", ...Array.from(new Set(payroll.map((p) => p.bulan)))];
+  const filtered = bulanFilter === "Semua" ? payroll : payroll.filter((p) => p.bulan === bulanFilter);
+
   return (
     <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <h3 className="mb-4 font-semibold text-slate-900">Payroll</h3>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="font-semibold text-slate-900">Payroll</h3>
+        <select
+          value={bulanFilter}
+          onChange={(e) => setBulanFilter(e.target.value)}
+          className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+        >
+          {bulanOptions.map((b) => (
+            <option key={b} value={b}>{b}</option>
+          ))}
+        </select>
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
@@ -31,7 +48,7 @@ export default function PayrollTable({ payroll }: { payroll: PayrollEntri[] }) {
             </tr>
           </thead>
           <tbody>
-            {payroll.map((p, i) => (
+            {filtered.map((p, i) => (
               <Fragment key={i}>
                 <tr className="border-b border-slate-100">
                   <td className="py-2 pr-4 text-slate-600">{p.bulan}</td>

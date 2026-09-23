@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { groupSnapshotDanRiwayat, mapPayrollRows, formatCapaian, parseLaporanAi } from "./transform";
+import { groupSnapshotDanRiwayat, mapPayrollRows, formatCapaian, parseLaporanAi, getPeriodeOptions, buildSnapshotForPeriode } from "./transform";
 import type { SheetRow } from "./server/sheets";
 
 function aiRow(overrides: Partial<SheetRow> = {}): SheetRow {
@@ -212,5 +212,54 @@ describe("parseLaporanAi", () => {
 
   it("returns empty strings for missing sections", () => {
     expect(parseLaporanAi("")).toEqual({ ringkasan: "", evaluasi: "", rekomendasi: "", insight: "" });
+  });
+});
+
+describe("getPeriodeOptions", () => {
+  it("returns an empty list for no history", () => {
+    expect(getPeriodeOptions([])).toEqual([]);
+  });
+
+  it("returns one option per distinct period, newest-first", () => {
+    const rows = [
+      aiRow({ divisi: "CHTTN", jenis_laporan: "Dekade2", rentang_dari: "2026-09-01", rentang_sampai: "2026-09-20", tanggal_generate: "2026-09-22 12:06:28" }),
+      aiRow({ divisi: "ChatBox", jenis_laporan: "Dekade2", rentang_dari: "2026-09-01", rentang_sampai: "2026-09-20", tanggal_generate: "2026-09-22 12:06:37" }),
+      aiRow({ divisi: "CHTTN", jenis_laporan: "Bulanan", rentang_dari: "2026-08-01", rentang_sampai: "2026-08-31", tanggal_generate: "2026-09-22 12:10:39" }),
+    ];
+    const { riwayat } = groupSnapshotDanRiwayat(rows);
+    const options = getPeriodeOptions(riwayat);
+    // Row-index order (append order) is: Dekade2 CHTTN, Dekade2 ChatBox, then
+    // Bulanan CHTTN appended LAST — so Bulanan is "newest" by row order even
+    // though its tanggal_generate string looks earlier for one row and later
+    // for another; getPeriodeOptions must follow riwayat's own order, not
+    // re-derive its own.
+    expect(options).toEqual([
+      { jenisLaporan: "Bulanan", rentangDari: "2026-08-01", rentangSampai: "2026-08-31", label: "Bulanan (2026-08-01 s.d. 2026-08-31)" },
+      { jenisLaporan: "Dekade2", rentangDari: "2026-09-01", rentangSampai: "2026-09-20", label: "Dekade2 (2026-09-01 s.d. 2026-09-20)" },
+    ]);
+  });
+});
+
+describe("buildSnapshotForPeriode", () => {
+  it("returns null when no row matches the given period", () => {
+    const { riwayat } = groupSnapshotDanRiwayat([aiRow()]);
+    const result = buildSnapshotForPeriode(riwayat, { jenisLaporan: "Dekade1", rentangDari: "2026-01-01", rentangSampai: "2026-01-10", label: "" });
+    expect(result).toBeNull();
+  });
+
+  it("rebuilds a snapshot for a non-newest period, deduping re-runs to the latest per division", () => {
+    const rows = [
+      // Older period (Dekade1), re-run twice for CHTTN — the second (later
+      // row index) must win.
+      aiRow({ divisi: "CHTTN", jenis_laporan: "Dekade1", rentang_dari: "2026-09-01", rentang_sampai: "2026-09-10", tanggal_generate: "2026-09-11 08:00:00", omzet: "1000" }),
+      aiRow({ divisi: "CHTTN", jenis_laporan: "Dekade1", rentang_dari: "2026-09-01", rentang_sampai: "2026-09-10", tanggal_generate: "2026-09-11 09:00:00", omzet: "2000" }),
+      // Newest period (Bulanan), appended last.
+      aiRow({ divisi: "CHTTN", jenis_laporan: "Bulanan", rentang_dari: "2026-08-01", rentang_sampai: "2026-08-31", tanggal_generate: "2026-09-22 08:00:00" }),
+    ];
+    const { riwayat } = groupSnapshotDanRiwayat(rows);
+    const result = buildSnapshotForPeriode(riwayat, { jenisLaporan: "Dekade1", rentangDari: "2026-09-01", rentangSampai: "2026-09-10", label: "" });
+    expect(result?.divisi.length).toBe(1);
+    expect(result?.divisi[0].omzet).toBe(2000);
+    expect(result?.jenisLaporan).toBe("Dekade1");
   });
 });
