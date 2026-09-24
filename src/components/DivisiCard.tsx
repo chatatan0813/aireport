@@ -48,10 +48,12 @@ export default function DivisiCard({ divisi }: { divisi: Divisi }) {
         </div>
       </dl>
 
-      <button onClick={() => setOpen((v) => !v)} className="mt-4 text-xs font-medium text-slate-500 hover:text-slate-300">
-        {open ? "Sembunyikan analisis AI ▲" : "Lihat analisis AI ▼"}
-      </button>
-      {open && (
+      {divisi.laporanAi && (
+        <button onClick={() => setOpen((v) => !v)} className="mt-4 text-xs font-medium text-slate-500 hover:text-slate-300">
+          {open ? "Sembunyikan analisis AI ▲" : "Lihat analisis AI ▼"}
+        </button>
+      )}
+      {open && divisi.laporanAi && (
         <div className="mt-3 space-y-2 border-t border-slate-800 pt-3 text-sm text-slate-300">
           <p><span className="font-medium text-slate-100">Ringkasan:</span> {bagian.ringkasan || "—"}</p>
           <p><span className="font-medium text-slate-100">Evaluasi:</span> {bagian.evaluasi || "—"}</p>
