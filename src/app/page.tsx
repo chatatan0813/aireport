@@ -23,14 +23,14 @@ type LiveResponse = {
   akhir: string;
 };
 
-const TABS = ["Ringkasan", "Live", "Riwayat", "Payroll"] as const;
+const TABS = ["Live", "Ringkasan", "Riwayat", "Payroll"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function DashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<LaporanResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("Ringkasan");
+  const [tab, setTab] = useState<Tab>("Live");
   const [periodeKey, setPeriodeKey] = useState<string>("terbaru");
   const [live, setLive] = useState<LiveResponse | null>(null);
   const [liveError, setLiveError] = useState<string | null>(null);
