@@ -155,9 +155,9 @@ export default function DashboardPage() {
       {tab === "Ringkasan" && snapshotDitampilkan && (
         <div className="space-y-6">
           <OmzetChart divisi={snapshotDitampilkan.divisi} />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {snapshotDitampilkan.divisi.map((d) => (
-              <DivisiCard key={d.nama} divisi={d} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {snapshotDitampilkan.divisi.map((d, i) => (
+              <DivisiCard key={d.nama} divisi={d} index={i} />
             ))}
           </div>
         </div>
@@ -192,9 +192,9 @@ export default function DashboardPage() {
           {live && live.divisi.length > 0 && (
             <div className="space-y-6">
               <OmzetChart divisi={live.divisi} />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {live.divisi.map((d) => (
-                  <DivisiCard key={d.nama} divisi={d} />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {live.divisi.map((d, i) => (
+                  <DivisiCard key={d.nama} divisi={d} index={i} />
                 ))}
               </div>
             </div>
