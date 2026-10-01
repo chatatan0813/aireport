@@ -1,3 +1,6 @@
+"use client";
+
+import { motion } from "framer-motion";
 import type { Divisi } from "@/lib/transform";
 import { formatRupiah } from "@/lib/rupiah";
 
@@ -30,7 +33,7 @@ export default function OmzetChart({ divisi }: { divisi: Divisi[] }) {
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {kelompok.map(([satuan, list]) => (
-        <div key={satuan} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+        <div key={satuan} className="rounded-3xl border border-[#1f2023] bg-[#111214] p-5">
           <h3 className="font-display mb-4 font-semibold text-slate-100">{SATUAN_LABEL[satuan] ?? `Capaian vs Target (${satuan})`}</h3>
           <div className="space-y-4">
             {list.map((d, i) => {
@@ -42,10 +45,13 @@ export default function OmzetChart({ divisi }: { divisi: Divisi[] }) {
                     <span className="truncate text-sm font-medium text-slate-200">{d.nama}</span>
                     <span className="tabular shrink-0 text-sm font-semibold text-slate-100">{persen.toFixed(0)}%</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                    <div
-                      className="h-full rounded-full transition-[width]"
-                      style={{ width: `${persen}%`, backgroundColor: warna }}
+                  <div className="h-2 overflow-hidden rounded-full bg-[#1c1d20]">
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{ backgroundColor: warna }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${persen}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut", delay: i * 0.05 }}
                     />
                   </div>
                   <div className="tabular mt-1 text-xs text-slate-500">

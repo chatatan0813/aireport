@@ -11,13 +11,13 @@ export default function RiwayatTable({ riwayat }: { riwayat: RiwayatEntri[] }) {
   const filtered = filter === "Semua" ? riwayat : riwayat.filter((r) => r.jenisLaporan === filter);
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+    <div className="rounded-3xl border border-[#1f2023] bg-[#111214] p-5">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-display font-semibold text-slate-100">Riwayat Laporan</h3>
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value as (typeof JENIS_OPTIONS)[number])}
-          className="rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-sm text-slate-100"
+          className="rounded-xl border border-[#1f2023] bg-[#0a0a0c] px-2 py-1 text-sm text-slate-100 focus:border-lime-400/40 focus:outline-none"
         >
           {JENIS_OPTIONS.map((o) => (
             <option key={o} value={o}>{o}</option>
@@ -27,7 +27,7 @@ export default function RiwayatTable({ riwayat }: { riwayat: RiwayatEntri[] }) {
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-800 text-slate-500">
+            <tr className="border-b border-[#1f2023] text-slate-500">
               <th className="py-2 pr-4">Tanggal</th>
               <th className="py-2 pr-4">Jenis</th>
               <th className="py-2 pr-4">Divisi</th>
@@ -38,7 +38,7 @@ export default function RiwayatTable({ riwayat }: { riwayat: RiwayatEntri[] }) {
           </thead>
           <tbody>
             {filtered.map((r, i) => (
-              <tr key={i} className="border-b border-slate-800/60">
+              <tr key={i} className="border-b border-[#1f2023]/60 transition hover:bg-white/[0.02]">
                 <td className="tabular py-2 pr-4 text-slate-500">{r.tanggalGenerate}</td>
                 <td className="py-2 pr-4 text-slate-400">{r.jenisLaporan}</td>
                 <td className="py-2 pr-4 font-medium text-slate-100">{r.nama}</td>

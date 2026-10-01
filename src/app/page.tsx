@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import DivisiCard from "@/components/DivisiCard";
 import OmzetChart from "@/components/OmzetChart";
 import RiwayatTable from "@/components/RiwayatTable";
@@ -25,6 +26,15 @@ type LiveResponse = {
 
 const TABS = ["Live", "Ringkasan", "Riwayat", "Payroll"] as const;
 type Tab = (typeof TABS)[number];
+
+const GRID_VARIANTS = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07 } },
+};
+const CARD_VARIANTS = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -81,10 +91,10 @@ export default function DashboardPage() {
   };
 
   if (error) {
-    return <div className="min-h-screen bg-slate-950 p-8 text-rose-400">{error}</div>;
+    return <div className="min-h-screen p-8 text-rose-400">{error}</div>;
   }
   if (!data) {
-    return <div className="min-h-screen bg-slate-950 p-8 text-slate-400">Memuat...</div>;
+    return <div className="min-h-screen p-8 text-slate-400">Memuat...</div>;
   }
 
   const keyOf = (p: PeriodeOption) => `${p.jenisLaporan}|${p.rentangDari}|${p.rentangSampai}`;
@@ -96,13 +106,13 @@ export default function DashboardPage() {
       : (buildSnapshotForPeriode(data.riwayat, periodeDipilih) ?? data.snapshotTerbaru);
 
   return (
-    <div className="min-h-screen bg-slate-950 p-6 md:p-10">
+    <div className="min-h-screen p-6 md:p-10">
       <header className="mb-6">
         <div className="flex items-start justify-between gap-4">
           <h1 className="font-display text-2xl font-semibold text-slate-100">AI Reporting — Chatatan Group</h1>
           <button
             onClick={handleLogout}
-            className="shrink-0 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-800"
+            className="shrink-0 rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300"
           >
             Keluar
           </button>
@@ -124,7 +134,9 @@ export default function DashboardPage() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`font-display rounded-full px-4 py-2 text-sm font-semibold ${tab === t ? "bg-emerald-950 text-emerald-400" : "text-slate-400 hover:text-slate-200"}`}
+            className={`font-display relative rounded-full px-4 py-2 text-sm font-semibold transition ${
+              tab === t ? "bg-lime-400/10 text-lime-300 ring-1 ring-inset ring-lime-400/40" : "text-slate-400 hover:text-slate-200"
+            }`}
           >
             {t}
           </button>
@@ -140,7 +152,7 @@ export default function DashboardPage() {
             id="periode"
             value={periodeKey}
             onChange={(e) => setPeriodeKey(e.target.value)}
-            className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+            className="w-full rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-2 text-sm text-slate-100 focus:border-lime-400/40 focus:outline-none"
           >
             <option value="terbaru">Terbaru</option>
             {periodeOptions.map((p) => (
@@ -152,15 +164,25 @@ export default function DashboardPage() {
         </div>
       )}
 
+      <AnimatePresence mode="wait">
+      <motion.div
+        key={tab}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.2 }}
+      >
       {tab === "Ringkasan" && snapshotDitampilkan && (
-        <div className="space-y-6">
+        <motion.div key={periodeKey} initial="hidden" animate="show" variants={GRID_VARIANTS} className="space-y-6">
           <OmzetChart divisi={snapshotDitampilkan.divisi} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {snapshotDitampilkan.divisi.map((d, i) => (
-              <DivisiCard key={d.nama} divisi={d} index={i} />
+              <motion.div key={d.nama} variants={CARD_VARIANTS}>
+                <DivisiCard divisi={d} index={i} />
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
       {tab === "Ringkasan" && !snapshotDitampilkan && (
         <p className="text-slate-400">Belum ada laporan tersimpan.</p>
@@ -175,7 +197,7 @@ export default function DashboardPage() {
             <button
               onClick={muatLive}
               disabled={liveLoading}
-              className="shrink-0 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+              className="shrink-0 rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300 disabled:opacity-50"
             >
               {liveLoading ? "Memuat..." : "Refresh"}
             </button>
@@ -190,14 +212,16 @@ export default function DashboardPage() {
           )}
 
           {live && live.divisi.length > 0 && (
-            <div className="space-y-6">
+            <motion.div initial="hidden" animate="show" variants={GRID_VARIANTS} className="space-y-6">
               <OmzetChart divisi={live.divisi} />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {live.divisi.map((d, i) => (
-                  <DivisiCard key={d.nama} divisi={d} index={i} />
+                  <motion.div key={d.nama} variants={CARD_VARIANTS}>
+                    <DivisiCard divisi={d} index={i} />
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {live && live.divisi.length === 0 && !liveLoading && (
@@ -210,6 +234,8 @@ export default function DashboardPage() {
 
       {tab === "Riwayat" && <RiwayatTable riwayat={data.riwayat} />}
       {tab === "Payroll" && <PayrollTable payroll={data.payroll} />}
+      </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
