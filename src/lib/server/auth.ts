@@ -25,8 +25,10 @@ export async function createSessionToken(): Promise<string> {
 
 export async function verifySessionToken(token: string): Promise<boolean> {
   try {
-    await jwtVerify(token, secret());
-    return true;
+    const { payload } = await jwtVerify(token, secret());
+    // Cek claim juga, bukan cuma tanda tangan -- defense-in-depth kalau
+    // SESSION_SECRET suatu saat gak sengaja kepake ulang di konteks lain.
+    return payload.dashboard === "aireport";
   } catch {
     return false;
   }
