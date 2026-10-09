@@ -1,6 +1,6 @@
 import type { Divisi } from "@/lib/transform";
 
-type RawDivision = {
+export type RawDivision = {
   name: string;
   omzet: number;
   laba?: number | null;
@@ -28,16 +28,29 @@ export function rentangBulanBerjalan(): { awal: string; akhir: string } {
   return { awal: `${y}-${pad(m)}-01`, akhir: `${y}-${pad(m)}-${pad(d)}` };
 }
 
-function satuanDanCapaian(name: string, d: RawDivision): { satuan: string; capaian: number } {
+export function satuanDanCapaian(name: string, d: RawDivision): { satuan: string; capaian: number } {
   if (name.startsWith("ChatBarber")) return { satuan: "kepala", capaian: Number(d.jumlahTransaksi) || 0 };
   if (name.startsWith("ChatShoeTreatment")) return { satuan: "pekerjaan", capaian: Number(d.jumlahTransaksi) || 0 };
   if (name === "KONVEKSI") return { satuan: "pcs", capaian: Number(d.jumlahPcs) || 0 };
   return { satuan: "Rupiah", capaian: Number(d.omzet) || 0 };
 }
 
-function statusDari(capaian: number, target: number): string {
+export function statusDari(capaian: number, target: number): string {
   if (target <= 0) return "Target belum diatur";
   return capaian >= target ? "Tercapai" : "Belum Tercapai";
+}
+
+/**
+ * Status "Tercapai"/"Belum Tercapai" satu divisi, dengan satuan capaian yang
+ * BENAR per jenis divisi (kepala untuk ChatBarber, pekerjaan untuk
+ * ChatShoeTreatment, pcs untuk KONVEKSI, Rupiah untuk sisanya) -- dipakai di
+ * mana pun perlu status sebuah divisi dari respons daily-report, supaya
+ * tidak ada tempat lain yang keliru membandingkan omzet Rupiah langsung ke
+ * target yang sebenarnya satuan kepala/pekerjaan/pcs.
+ */
+export function statusDivisi(name: string, d: RawDivision): string {
+  const { capaian } = satuanDanCapaian(name, d);
+  return statusDari(capaian, Number(d.target) || 0);
 }
 
 export async function fetchLiveDivisi(): Promise<{ divisi: Divisi[]; gagal: string[] }> {

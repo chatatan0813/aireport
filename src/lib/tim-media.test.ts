@@ -3,12 +3,12 @@ import { hitungTimMedia, type DivisiOmzet, type AnggotaTimMedia } from "./tim-me
 
 const divisi6 = (overrides: Partial<Record<string, Partial<DivisiOmzet>>> = {}): DivisiOmzet[] => {
   const dasar: DivisiOmzet[] = [
-    { nama: "ChatBarber Cempaka", omzet: 1_000_000, target: 2_000_000 },
-    { nama: "ChatBarber Pinus", omzet: 1_000_000, target: 2_000_000 },
-    { nama: "ChatShoeTreatment Cempaka", omzet: 1_000_000, target: 2_000_000 },
-    { nama: "ChatShoeTreatment Pinus", omzet: 1_000_000, target: 2_000_000 },
-    { nama: "CHTTN", omzet: 1_000_000, target: 2_000_000 },
-    { nama: "ChatBox", omzet: 1_000_000, target: 2_000_000 },
+    { nama: "ChatBarber Cempaka", omzet: 1_000_000, status: "Belum Tercapai" },
+    { nama: "ChatBarber Pinus", omzet: 1_000_000, status: "Belum Tercapai" },
+    { nama: "ChatShoeTreatment Cempaka", omzet: 1_000_000, status: "Belum Tercapai" },
+    { nama: "ChatShoeTreatment Pinus", omzet: 1_000_000, status: "Belum Tercapai" },
+    { nama: "CHTTN", omzet: 1_000_000, status: "Belum Tercapai" },
+    { nama: "ChatBox", omzet: 1_000_000, status: "Belum Tercapai" },
   ];
   return dasar.map((d) => ({ ...d, ...overrides[d.nama] }));
 };
@@ -28,9 +28,9 @@ describe("hitungTimMedia", () => {
     expect(total).toBe(6_000);
   });
 
-  it("adds 0.3% bonus only for divisions that reached their own target", () => {
+  it("adds 0.3% bonus only for divisions whose OWN status is 'Tercapai'", () => {
     const hasil = hitungTimMedia(
-      divisi6({ CHTTN: { omzet: 3_000_000, target: 2_000_000 } }), // hits target, the other 5 don't
+      divisi6({ CHTTN: { omzet: 3_000_000, status: "Tercapai" } }), // hits target, the other 5 don't
       tigaOrang,
     );
     // Pool bonus = hanya CHTTN: 3.000.000 x 0,3% = 9.000
@@ -38,9 +38,24 @@ describe("hitungTimMedia", () => {
     expect(totalBonus).toBe(9_000);
   });
 
+  it("uses the status given directly -- never re-derives it by comparing omzet (Rupiah) to a target in another unit", () => {
+    // Kasus bug nyata: ChatBarber/ChatShoeTreatment target-nya kepala/pekerjaan,
+    // BUKAN Rupiah -- omzet jutaan selalu >= target kepala yang cuma ratusan,
+    // jadi membandingkan omzet ke target langsung SELALU salah bilang "Tercapai".
+    // status di sini sudah dihitung benar oleh pemanggil (statusDivisi() di
+    // lib/server/live.ts, satuan-aware), hitungTimMedia tidak boleh menghitung ulang.
+    const hasil = hitungTimMedia(
+      [{ nama: "ChatBarber Cempaka", omzet: 13_336_000, status: "Belum Tercapai" }],
+      tigaOrang,
+    );
+    expect(hasil.rincianDivisi![0].status).toBe("Belum Tercapai");
+    const totalBonus = hasil.pegawai.reduce((s, p) => s + p.bonus, 0);
+    expect(totalBonus).toBe(0);
+  });
+
   it("splits both pools evenly across however many people are given", () => {
     const hasil = hitungTimMedia(
-      divisi6({ CHTTN: { omzet: 3_000_000, target: 2_000_000 } }),
+      divisi6({ CHTTN: { omzet: 3_000_000, status: "Tercapai" } }),
       tigaOrang,
     );
     // Pool bonus = 9.000, habis dibagi 3 -> pas Rp3.000 masing-masing.
@@ -56,25 +71,25 @@ describe("hitungTimMedia", () => {
     expect(Math.max(...insentif) - Math.min(...insentif)).toBeLessThanOrEqual(1);
   });
 
-  it("treats an unset target (<=0) as not reached, never a free bonus", () => {
-    const hasil = hitungTimMedia(divisi6({ CHTTN: { omzet: 5_000_000, target: 0 } }), tigaOrang);
+  it("treats 'Target belum diatur' as not reached, never a free bonus", () => {
+    const hasil = hitungTimMedia(divisi6({ CHTTN: { omzet: 5_000_000, status: "Target belum diatur" } }), tigaOrang);
     const totalBonus = hasil.pegawai.reduce((s, p) => s + p.bonus, 0);
     expect(totalBonus).toBe(0);
   });
 
   it("ignores a divisi name that isn't one of the 6 (e.g. KONVEKSI leaking through)", () => {
-    const hasil = hitungTimMedia([...divisi6(), { nama: "KONVEKSI", omzet: 999_999_999, target: 1 }], tigaOrang);
+    const hasil = hitungTimMedia([...divisi6(), { nama: "KONVEKSI", omzet: 999_999_999, status: "Tercapai" }], tigaOrang);
     const total = hasil.pegawai.reduce((s, p) => s + p.insentif, 0);
     expect(total).toBe(6_000); // sama seperti tanpa KONVEKSI -- baris itu diabaikan
   });
 
   it("returns zero shares and an empty pegawai list when there are 0 recipients, instead of dividing by zero", () => {
-    const hasil = hitungTimMedia(divisi6({ CHTTN: { omzet: 3_000_000, target: 2_000_000 } }), []);
+    const hasil = hitungTimMedia(divisi6({ CHTTN: { omzet: 3_000_000, status: "Tercapai" } }), []);
     expect(hasil.pegawai).toEqual([]);
   });
 
   it("labels the group and reports how many of the 6 divisions hit target in keterangan", () => {
-    const hasil = hitungTimMedia(divisi6({ CHTTN: { omzet: 3_000_000, target: 2_000_000 } }), tigaOrang);
+    const hasil = hitungTimMedia(divisi6({ CHTTN: { omzet: 3_000_000, status: "Tercapai" } }), tigaOrang);
     expect(hasil.divisi).toBe("Tim Media");
     expect(hasil.keterangan).toContain("1 dari 6 divisi");
     expect(hasil.targetTercapai).toBe(true); // minimal 1 divisi tercapai -> ada bonus cair
@@ -95,17 +110,17 @@ describe("hitungTimMedia", () => {
     ]);
   });
 
-  it("includes a per-divisi breakdown (rincianDivisi) with each divisi's own omzet/target/status and its pool contribution", () => {
-    const hasil = hitungTimMedia(divisi6({ CHTTN: { omzet: 3_000_000, target: 2_000_000 } }), tigaOrang);
+  it("includes a per-divisi breakdown (rincianDivisi) with each divisi's own omzet/status and its pool contribution", () => {
+    const hasil = hitungTimMedia(divisi6({ CHTTN: { omzet: 3_000_000, status: "Tercapai" } }), tigaOrang);
     expect(hasil.rincianDivisi).toHaveLength(6);
     const chttn = hasil.rincianDivisi!.find((r) => r.divisi === "CHTTN");
-    expect(chttn).toEqual({ divisi: "CHTTN", omzet: 3_000_000, target: 2_000_000, tercapai: true, insentif: 3_000, bonus: 9_000 });
+    expect(chttn).toEqual({ divisi: "CHTTN", omzet: 3_000_000, status: "Tercapai", insentif: 3_000, bonus: 9_000 });
     const cempaka = hasil.rincianDivisi!.find((r) => r.divisi === "ChatBarber Cempaka");
-    expect(cempaka).toEqual({ divisi: "ChatBarber Cempaka", omzet: 1_000_000, target: 2_000_000, tercapai: false, insentif: 1_000, bonus: 0 });
+    expect(cempaka).toEqual({ divisi: "ChatBarber Cempaka", omzet: 1_000_000, status: "Belum Tercapai", insentif: 1_000, bonus: 0 });
   });
 
   it("rincianDivisi excludes a divisi name outside the 6, same as the pegawai totals", () => {
-    const hasil = hitungTimMedia([...divisi6(), { nama: "KONVEKSI", omzet: 999_999_999, target: 1 }], tigaOrang);
+    const hasil = hitungTimMedia([...divisi6(), { nama: "KONVEKSI", omzet: 999_999_999, status: "Tercapai" }], tigaOrang);
     expect(hasil.rincianDivisi!.map((r) => r.divisi)).not.toContain("KONVEKSI");
   });
 });

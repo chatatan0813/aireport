@@ -18,8 +18,7 @@ export type InsentifPegawai = {
 export type InsentifRincianDivisi = {
   divisi: string;
   omzet: number;
-  target: number;
-  tercapai: boolean;
+  status: string; // "Tercapai" | "Belum Tercapai" | "Target belum diatur" -- lihat statusDivisi() di lib/server/live.ts
   insentif: number;
   bonus: number;
 };

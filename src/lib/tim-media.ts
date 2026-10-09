@@ -16,7 +16,13 @@ const DIVISI_TIM_MEDIA = [
 const RATE_INSENTIF = 0.001; // 0,1% dari omzet, selalu jalan
 const RATE_BONUS = 0.003; // 0,3% dari omzet, hanya divisi yang capai target bulan itu
 
-export type DivisiOmzet = { nama: string; omzet: number; target: number };
+// `status` HARUS sudah dihitung satuan-aware oleh pemanggil (statusDivisi()
+// di lib/server/live.ts) -- fungsi di sini TIDAK boleh membandingkan omzet
+// (selalu Rupiah) langsung ke sebuah "target" sendiri, karena target divisi
+// ChatBarber/ChatShoeTreatment itu satuannya kepala/pekerjaan, bukan Rupiah
+// (bug nyata yang pernah terjadi: omzet jutaan selalu >= target kepala yang
+// cuma ratusan, jadi SELALU salah bilang "Tercapai").
+export type DivisiOmzet = { nama: string; omzet: number; status: string };
 export type AnggotaTimMedia = { nama: string; peran: string | null };
 
 /**
@@ -25,9 +31,9 @@ export type AnggotaTimMedia = { nama: string; peran: string | null };
  * ada di aplikasi manapun, rumus ini murni punya aireport sendiri.
  *
  * Tiap divisi: insentif = omzet x 0,1% (selalu), bonus = omzet x 0,3% HANYA
- * kalau omzet divisi itu sendiri sudah >= target-nya sendiri. Keenam hasil
- * dijumlah jadi satu pool insentif + satu pool bonus, baru dibagi rata ke
- * jumlah anggota yang dikasih (pembagian terakhir, bukan per-divisi).
+ * kalau status divisi itu sendiri "Tercapai". Keenam hasil dijumlah jadi
+ * satu pool insentif + satu pool bonus, baru dibagi rata ke jumlah anggota
+ * yang dikasih (pembagian terakhir, bukan per-divisi).
  */
 export function hitungTimMedia(divisiList: DivisiOmzet[], anggota: AnggotaTimMedia[]): InsentifGroup {
   const relevan = divisiList.filter((d) => DIVISI_TIM_MEDIA.includes(d.nama));
@@ -39,14 +45,14 @@ export function hitungTimMedia(divisiList: DivisiOmzet[], anggota: AnggotaTimMed
 
   for (const d of relevan) {
     const insentifDivisi = Math.round(d.omzet * RATE_INSENTIF);
-    const tercapai = d.target > 0 && d.omzet >= d.target;
+    const tercapai = d.status === "Tercapai";
     const bonusDivisi = tercapai ? Math.round(d.omzet * RATE_BONUS) : 0;
 
     poolInsentif += insentifDivisi;
     poolBonus += bonusDivisi;
     if (tercapai) jumlahTercapai += 1;
 
-    rincianDivisi.push({ divisi: d.nama, omzet: d.omzet, target: d.target, tercapai, insentif: insentifDivisi, bonus: bonusDivisi });
+    rincianDivisi.push({ divisi: d.nama, omzet: d.omzet, status: d.status, insentif: insentifDivisi, bonus: bonusDivisi });
   }
 
   const n = anggota.length;

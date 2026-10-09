@@ -95,6 +95,25 @@ describe("fetchTimMedia", () => {
     expect(hasil.group!.pegawai[0].insentif).toBe(2_000); // cuma dari ChatBarber Cempaka
   });
 
+  it("regression: a ChatBarber/ChatShoeTreatment divisi with huge Rupiah omzet but jumlahTransaksi under its kepala/pekerjaan target is 'Belum Tercapai', not 'Tercapai'", async () => {
+    // Kasus bug nyata: omzet Rp13.336.000 jauh di atas "target" 1.550 (itu
+    // target KEPALA, bukan Rupiah) -- jumlahTransaksi (kepala asli) cuma 223,
+    // di bawah target, jadi harus Belum Tercapai meski omzetnya besar.
+    const { impl } = fetchPalsu({
+      "chttn.": divisions([]),
+      "cbcst.": () =>
+        Response.json({
+          divisions: [{ name: "ChatBarber Cempaka", omzet: 13_336_000, target: 1_550, jumlahTransaksi: 223 }],
+        }),
+      "chatbox.": divisions([]),
+    });
+
+    const hasil = await fetchTimMedia("2026-10", { fetchImpl: impl, ambilRoster: ambilRosterOk });
+
+    expect(hasil.group!.rincianDivisi!.find((r) => r.divisi === "ChatBarber Cempaka")!.status).toBe("Belum Tercapai");
+    expect(hasil.group!.pegawai[0].bonus).toBe(0);
+  });
+
   it("returns a null group and reports 'Tim Media' as failed when the HRD roster itself can't be read", async () => {
     const { impl } = fetchPalsu({ "chttn.": divisions([]), "cbcst.": divisions([]), "chatbox.": divisions([]) });
     const ambilRosterGagal = async () => {

@@ -1,8 +1,15 @@
 import type { InsentifGroup } from "../insentif";
 import { hitungTimMedia, type AnggotaTimMedia, type DivisiOmzet } from "../tim-media";
 import { getTimMediaRoster } from "./hrd-sheet";
+import { statusDivisi } from "./live";
 
-type RawDivision = { name: string; omzet?: unknown; target?: unknown };
+type RawDivision = {
+  name: string;
+  omzet?: unknown;
+  target?: unknown;
+  jumlahTransaksi?: unknown;
+  jumlahPcs?: unknown;
+};
 type DailyReportResponse = { divisions?: unknown };
 
 const SUMBER: { nama: string; url: string }[] = [
@@ -60,7 +67,21 @@ export async function fetchTimMedia(
         }
         return (json.divisions as RawDivision[])
           .filter((d): d is RawDivision & { name: string } => typeof d.name === "string")
-          .map((d) => ({ nama: d.name, omzet: Number(d.omzet) || 0, target: Number(d.target) || 0 }));
+          .map((d) => {
+            const omzet = Number(d.omzet) || 0;
+            // statusDivisi() sendiri yang menentukan satuan capaian yang
+            // benar per jenis divisi (kepala/pekerjaan/pcs/Rupiah) -- lihat
+            // catatan di tim-media.ts kenapa ini tidak boleh dihitung ulang
+            // dengan membandingkan omzet langsung ke target di sini.
+            const status = statusDivisi(d.name, {
+              name: d.name,
+              omzet,
+              target: Number(d.target) || 0,
+              jumlahTransaksi: Number(d.jumlahTransaksi) || 0,
+              jumlahPcs: Number(d.jumlahPcs) || 0,
+            });
+            return { nama: d.name, omzet, status };
+          });
       } catch {
         gagal.push(s.nama);
         return [];

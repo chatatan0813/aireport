@@ -149,14 +149,14 @@ function KartuDivisi({
                   <td className="py-1.5 pr-3">
                     <span
                       className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                        r.target <= 0
-                          ? "bg-slate-800 text-slate-400"
-                          : r.tercapai
-                            ? "bg-emerald-950 text-emerald-400"
-                            : "bg-rose-950 text-rose-400"
+                        r.status === "Tercapai"
+                          ? "bg-emerald-950 text-emerald-400"
+                          : r.status === "Belum Tercapai"
+                            ? "bg-rose-950 text-rose-400"
+                            : "bg-slate-800 text-slate-400"
                       }`}
                     >
-                      {r.target <= 0 ? "Target belum diset" : r.tercapai ? "Tercapai" : "Belum tercapai"}
+                      {r.status}
                     </span>
                   </td>
                   <td className="tabular hidden whitespace-nowrap py-1.5 pr-3 text-right sm:table-cell print:table-cell">
