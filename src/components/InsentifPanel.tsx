@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { formatRupiah } from "@/lib/rupiah";
 import { bulanIni, labelBulan, totalGroup, totalSemua } from "@/lib/insentif";
 import type { InsentifGroup, InsentifResponse } from "@/lib/insentif";
+import { useCetakKartu } from "@/lib/use-cetak-kartu";
 
 // Disimpan di luar komponen supaya pindah tab lalu balik ke "Insentif" tidak
 // menarik ulang ketiga aplikasi -- panel ini di-unmount tiap ganti tab. Data
@@ -44,17 +45,37 @@ function BadgeTarget({ tercapai }: { tercapai: boolean | null }) {
   return <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${kelas}`}>{teks}</span>;
 }
 
-function KartuDivisi({ group }: { group: InsentifGroup }) {
+function KartuDivisi({
+  group,
+  sedangCetak,
+  onCetak,
+}: {
+  group: InsentifGroup;
+  sedangCetak: boolean;
+  onCetak: () => void;
+}) {
   const total = totalGroup(group);
   return (
-    <div className="rounded-3xl border border-[#1f2023] bg-[#111214] p-5">
+    <div className={`kartu-cetak rounded-3xl border border-[#1f2023] bg-[#111214] p-5 ${sedangCetak ? "print:hidden" : ""}`}>
+      <div className="mb-3 hidden border-b border-black pb-2 print:block">
+        <p className="font-display font-semibold">Chatatan Group</p>
+        <p className="text-xs">Slip Insentif &amp; Bonus · dicetak {new Date().toLocaleDateString("id-ID")}</p>
+      </div>
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
         <div className="min-w-0">
           {group.sumber === "CBCST" && <div className="text-xs font-medium tracking-wide text-slate-500">CBCST</div>}
           {/* Sengaja tidak di-truncate: "ChatShoeTreatment Cempaka" dan "...Pinus" jadi tak terbedakan kalau dipotong. */}
           <h3 className="font-display font-semibold text-slate-100">{group.divisi}</h3>
         </div>
-        <BadgeTarget tercapai={group.targetTercapai} />
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            onClick={onCetak}
+            className="print:hidden rounded-lg border border-[#1f2023] px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
+          >
+            Print
+          </button>
+          <BadgeTarget tercapai={group.targetTercapai} />
+        </div>
       </div>
       {group.keterangan && <p className="mt-1 text-sm text-slate-400">{group.keterangan}</p>}
       {group.catatan && (
@@ -66,8 +87,8 @@ function KartuDivisi({ group }: { group: InsentifGroup }) {
           <thead>
             <tr className="border-b border-[#1f2023] text-slate-500">
               <th className="py-2 pr-4 font-medium">Nama</th>
-              <th className="hidden py-2 pr-4 text-right font-medium sm:table-cell">Insentif</th>
-              <th className="hidden py-2 pr-4 text-right font-medium sm:table-cell">Bonus</th>
+              <th className="hidden py-2 pr-4 text-right font-medium sm:table-cell print:table-cell">Insentif</th>
+              <th className="hidden py-2 pr-4 text-right font-medium sm:table-cell print:table-cell">Bonus</th>
               <th className="py-2 text-right font-medium">Total</th>
             </tr>
           </thead>
@@ -81,8 +102,8 @@ function KartuDivisi({ group }: { group: InsentifGroup }) {
                   )}
                   <RincianSempit insentif={p.insentif} bonus={p.bonus} />
                 </td>
-                <td className="tabular hidden whitespace-nowrap py-2 pr-4 text-right sm:table-cell"><Rupiah nilai={p.insentif} /></td>
-                <td className="tabular hidden whitespace-nowrap py-2 pr-4 text-right sm:table-cell"><Rupiah nilai={p.bonus} /></td>
+                <td className="tabular hidden whitespace-nowrap py-2 pr-4 text-right sm:table-cell print:table-cell"><Rupiah nilai={p.insentif} /></td>
+                <td className="tabular hidden whitespace-nowrap py-2 pr-4 text-right sm:table-cell print:table-cell"><Rupiah nilai={p.bonus} /></td>
                 <td className="tabular whitespace-nowrap py-2 text-right"><Rupiah nilai={p.total} tebal /></td>
               </tr>
             ))}
@@ -99,8 +120,8 @@ function KartuDivisi({ group }: { group: InsentifGroup }) {
                   Subtotal · {total.jumlahPegawai} orang
                   <RincianSempit insentif={total.insentif} bonus={total.bonus} />
                 </td>
-                <td className="tabular hidden whitespace-nowrap py-2 pr-4 text-right sm:table-cell"><Rupiah nilai={total.insentif} /></td>
-                <td className="tabular hidden whitespace-nowrap py-2 pr-4 text-right sm:table-cell"><Rupiah nilai={total.bonus} /></td>
+                <td className="tabular hidden whitespace-nowrap py-2 pr-4 text-right sm:table-cell print:table-cell"><Rupiah nilai={total.insentif} /></td>
+                <td className="tabular hidden whitespace-nowrap py-2 pr-4 text-right sm:table-cell print:table-cell"><Rupiah nilai={total.bonus} /></td>
                 <td className="tabular whitespace-nowrap py-2 text-right"><Rupiah nilai={total.total} tebal /></td>
               </tr>
             </tfoot>
@@ -153,10 +174,11 @@ export default function InsentifPanel() {
   const sedangMuat = loading[bulan] ?? false;
   const pesanError = error[bulan];
   const total = hasil ? totalSemua(hasil.groups) : null;
+  const { cetakId, setCetakId } = useCetakKartu();
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div className="flex flex-wrap items-center gap-3">
           <input
             type="month"
@@ -182,7 +204,7 @@ export default function InsentifPanel() {
       {pesanError && <p className="text-rose-400">{pesanError}</p>}
 
       {hasil && hasil.gagal.length > 0 && (
-        <div className="rounded-lg bg-amber-950/40 px-4 py-2 text-sm text-amber-400 ring-1 ring-amber-900">
+        <div className="print:hidden rounded-lg bg-amber-950/40 px-4 py-2 text-sm text-amber-400 ring-1 ring-amber-900">
           Gagal ambil data dari: {hasil.gagal.join(", ")} — karyawan dari aplikasi itu belum masuk hitungan di bawah ini.
         </div>
       )}
@@ -191,7 +213,7 @@ export default function InsentifPanel() {
 
       {hasil && total && (
         <motion.div key={bulan} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="space-y-4">
-          <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4 print:hidden">
             {[
               { label: "Total insentif", isi: <Rupiah nilai={total.insentif} /> },
               { label: "Total bonus", isi: <Rupiah nilai={total.bonus} /> },
@@ -207,9 +229,17 @@ export default function InsentifPanel() {
 
           {hasil.groups.length > 0 ? (
             <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-              {hasil.groups.map((g) => (
-                <KartuDivisi key={`${g.sumber}/${g.divisi}`} group={g} />
-              ))}
+              {hasil.groups.map((g) => {
+                const id = `${g.sumber}/${g.divisi}`;
+                return (
+                  <KartuDivisi
+                    key={id}
+                    group={g}
+                    sedangCetak={cetakId !== null && cetakId !== id}
+                    onCetak={() => setCetakId(id)}
+                  />
+                );
+              })}
             </div>
           ) : (
             <p className="text-slate-400">Tidak ada data.</p>

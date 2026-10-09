@@ -25,3 +25,24 @@ body {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* Cetak 1 kartu (slip Insentif/Payroll) -- chrome halaman (header/nav/filter)
+   dan kartu lain disembunyikan lewat utility `print:hidden` Tailwind di JSX
+   (statis untuk chrome, dinamis per-kartu lewat state cetakId). Blok ini
+   cuma ngurus bagian yang Tailwind gak bisa: tema gelap situs dipaksa jadi
+   hitam-di-atas-putih supaya kertasnya kebaca dan gak boros tinta. */
+@media print {
+  @page {
+    size: portrait;
+    margin: 12mm;
+  }
+  body {
+    background: #fff !important;
+  }
+  .kartu-cetak,
+  .kartu-cetak * {
+    background: #fff !important;
+    color: #000 !important;
+    border-color: #999 !important;
+  }
+}

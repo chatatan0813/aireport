@@ -108,7 +108,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen p-6 md:p-10">
-      <header className="mb-6">
+      <header className="mb-6 print:hidden">
         <div className="flex items-start justify-between gap-4">
           <h1 className="font-display text-2xl font-semibold text-slate-100">AI Reporting — Chatatan Group</h1>
           <button
@@ -130,7 +130,7 @@ export default function DashboardPage() {
         )}
       </header>
 
-      <nav className="mb-6 flex flex-wrap gap-2">
+      <nav className="mb-6 flex flex-wrap gap-2 print:hidden">
         {TABS.map((t) => (
           <button
             key={t}
@@ -145,7 +145,7 @@ export default function DashboardPage() {
       </nav>
 
       {tab === "Ringkasan" && (
-        <div className="mb-4 max-w-xs">
+        <div className="mb-4 max-w-xs print:hidden">
           <label className="mb-1 block text-sm font-medium text-slate-300" htmlFor="periode">
             Periode
           </label>
