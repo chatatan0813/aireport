@@ -7,6 +7,7 @@ import DivisiCard from "@/components/DivisiCard";
 import OmzetChart from "@/components/OmzetChart";
 import RiwayatTable from "@/components/RiwayatTable";
 import PayrollTable from "@/components/PayrollTable";
+import InsentifPanel from "@/components/InsentifPanel";
 import type { SnapshotTerbaru, RiwayatEntri, PayrollEntri, PeriodeOption, Divisi } from "@/lib/transform";
 import { getPeriodeOptions, buildSnapshotForPeriode } from "@/lib/transform";
 
@@ -24,7 +25,7 @@ type LiveResponse = {
   akhir: string;
 };
 
-const TABS = ["Live", "Ringkasan", "Riwayat", "Payroll"] as const;
+const TABS = ["Live", "Ringkasan", "Riwayat", "Payroll", "Insentif"] as const;
 type Tab = (typeof TABS)[number];
 
 const GRID_VARIANTS = {
@@ -129,7 +130,7 @@ export default function DashboardPage() {
         )}
       </header>
 
-      <nav className="mb-6 flex gap-2">
+      <nav className="mb-6 flex flex-wrap gap-2">
         {TABS.map((t) => (
           <button
             key={t}
@@ -234,6 +235,7 @@ export default function DashboardPage() {
 
       {tab === "Riwayat" && <RiwayatTable riwayat={data.riwayat} />}
       {tab === "Payroll" && <PayrollTable payroll={data.payroll} />}
+      {tab === "Insentif" && <InsentifPanel />}
       </motion.div>
       </AnimatePresence>
     </div>
