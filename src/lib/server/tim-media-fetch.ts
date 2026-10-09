@@ -34,7 +34,8 @@ export async function fetchTimMedia(
   let anggota: AnggotaTimMedia[];
   try {
     anggota = await ambilRoster();
-  } catch {
+  } catch (err) {
+    console.error("fetchTimMedia: gagal baca roster HRD:", err);
     return { group: null, gagal: ["Tim Media (roster)"] };
   }
 
