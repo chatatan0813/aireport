@@ -27,7 +27,10 @@ export function filterTimMedia(rows: PegawaiHrd[]): AnggotaTimMedia[] {
 /** Baca tab "Aktif" dari spreadsheet HRD -- sama persis skema (kolom A/G/H) dengan yang sudah dipakai CBCST/chttn-basic. */
 export async function bacaPegawaiAktif(): Promise<PegawaiHrd[]> {
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON is not set");
-  if (!process.env.GOOGLE_SHEET_ID) throw new Error("GOOGLE_SHEET_ID is not set");
+  // Sheet terpisah dari GOOGLE_SHEET_ID (itu punya tab Payroll/AI-Reporting
+  // sendiri) -- ini ID spreadsheet HRD "Aktif" yang sama dengan yang dipakai
+  // CBCST/chttn-basic, dipakai service account yang sama juga.
+  if (!process.env.GOOGLE_SHEET_ID_HRD) throw new Error("GOOGLE_SHEET_ID_HRD is not set");
 
   let credentials;
   try {
@@ -38,7 +41,7 @@ export async function bacaPegawaiAktif(): Promise<PegawaiHrd[]> {
 
   const auth = new google.auth.GoogleAuth({ credentials, scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"] });
   const sheets = google.sheets({ version: "v4", auth });
-  const res = await sheets.spreadsheets.values.get({ spreadsheetId: process.env.GOOGLE_SHEET_ID, range: "Aktif!A2:H" });
+  const res = await sheets.spreadsheets.values.get({ spreadsheetId: process.env.GOOGLE_SHEET_ID_HRD, range: "Aktif!A2:H" });
 
   return (res.data.values ?? [])
     .filter((row) => row[0])
