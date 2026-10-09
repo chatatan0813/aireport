@@ -94,4 +94,18 @@ describe("hitungTimMedia", () => {
       ["Muhammad Bahrul Fahmi", null],
     ]);
   });
+
+  it("includes a per-divisi breakdown (rincianDivisi) with each divisi's own omzet/target/status and its pool contribution", () => {
+    const hasil = hitungTimMedia(divisi6({ CHTTN: { omzet: 3_000_000, target: 2_000_000 } }), tigaOrang);
+    expect(hasil.rincianDivisi).toHaveLength(6);
+    const chttn = hasil.rincianDivisi!.find((r) => r.divisi === "CHTTN");
+    expect(chttn).toEqual({ divisi: "CHTTN", omzet: 3_000_000, target: 2_000_000, tercapai: true, insentif: 3_000, bonus: 9_000 });
+    const cempaka = hasil.rincianDivisi!.find((r) => r.divisi === "ChatBarber Cempaka");
+    expect(cempaka).toEqual({ divisi: "ChatBarber Cempaka", omzet: 1_000_000, target: 2_000_000, tercapai: false, insentif: 1_000, bonus: 0 });
+  });
+
+  it("rincianDivisi excludes a divisi name outside the 6, same as the pegawai totals", () => {
+    const hasil = hitungTimMedia([...divisi6(), { nama: "KONVEKSI", omzet: 999_999_999, target: 1 }], tigaOrang);
+    expect(hasil.rincianDivisi!.map((r) => r.divisi)).not.toContain("KONVEKSI");
+  });
 });

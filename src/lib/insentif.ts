@@ -12,13 +12,26 @@ export type InsentifPegawai = {
   total: number;
 };
 
+// Kontribusi satu divisi ke pool insentif/bonus sebelum dibagi rata ke
+// pegawai -- cuma dipakai grup "Tim Media" (lihat tim-media.ts), grup dari
+// 3 aplikasi eksternal tidak pernah mengisi field ini.
+export type InsentifRincianDivisi = {
+  divisi: string;
+  omzet: number;
+  target: number;
+  tercapai: boolean;
+  insentif: number;
+  bonus: number;
+};
+
 export type InsentifGroup = {
-  sumber: string; // aplikasi asal: "CHTTN" | "CBCST" | "ChatBox"
+  sumber: string; // aplikasi asal: "CHTTN" | "CBCST" | "ChatBox" | "Media"
   divisi: string;
   targetTercapai: boolean | null; // null = target belum diset
   keterangan: string;
   catatan: string | null;
   pegawai: InsentifPegawai[];
+  rincianDivisi?: InsentifRincianDivisi[];
 };
 
 export type InsentifResponse = {

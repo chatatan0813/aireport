@@ -13,15 +13,13 @@ const CABANG_TIM_MEDIA = "Creative";
  * Ery Rusadi di cabang CHTTN) yang insentifnya sudah dihitung lewat pool
  * toko sendiri, bukan Tim Media.
  *
- * Alpri Andrian (Head) selalu ditambah manual di urutan pertama -- dia ada
- * di sheet dengan cabang "CHTTN" (bukan "Creative") jadi tidak kesaring
- * otomatis, dan user minta dia ditambah tangan, bukan lewat filter jabatan.
+ * Murni karyawan Creative -- TIDAK ada tambahan manual (mis. Head) lagi,
+ * roster sepenuhnya mengikuti sheet HRD apa adanya.
  */
 export function filterTimMedia(rows: PegawaiHrd[]): AnggotaTimMedia[] {
-  const kreatif = rows
-    .filter((r) => r.jabatan === JABATAN_TIM_MEDIA && r.cabang === CABANG_TIM_MEDIA && r.nama !== "Alpri Andrian")
+  return rows
+    .filter((r) => r.jabatan === JABATAN_TIM_MEDIA && r.cabang === CABANG_TIM_MEDIA)
     .map((r) => ({ nama: r.nama, peran: null }));
-  return [{ nama: "Alpri Andrian", peran: "Head" }, ...kreatif];
 }
 
 /** Baca tab "Aktif" dari spreadsheet HRD -- sama persis skema (kolom A/G/H) dengan yang sudah dipakai CBCST/chttn-basic. */

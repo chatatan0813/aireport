@@ -128,6 +128,51 @@ function KartuDivisi({
           )}
         </table>
       </div>
+
+      {group.rincianDivisi && group.rincianDivisi.length > 0 && (
+        <div className="mt-4 overflow-x-auto border-t border-[#1f2023] pt-3">
+          <p className="mb-2 text-xs font-medium text-slate-500">Rincian per divisi</p>
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-[#1f2023] text-slate-500">
+                <th className="py-1.5 pr-3 font-medium">Divisi</th>
+                <th className="py-1.5 pr-3 font-medium">Status</th>
+                <th className="hidden py-1.5 pr-3 text-right font-medium sm:table-cell print:table-cell">Omzet</th>
+                <th className="py-1.5 pr-3 text-right font-medium">Insentif</th>
+                <th className="py-1.5 text-right font-medium">Bonus</th>
+              </tr>
+            </thead>
+            <tbody>
+              {group.rincianDivisi.map((r) => (
+                <tr key={r.divisi} className="border-b border-[#1f2023]/60">
+                  <td className="py-1.5 pr-3 text-slate-200">{r.divisi}</td>
+                  <td className="py-1.5 pr-3">
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                        r.target <= 0
+                          ? "bg-slate-800 text-slate-400"
+                          : r.tercapai
+                            ? "bg-emerald-950 text-emerald-400"
+                            : "bg-rose-950 text-rose-400"
+                      }`}
+                    >
+                      {r.target <= 0 ? "Target belum diset" : r.tercapai ? "Tercapai" : "Belum tercapai"}
+                    </span>
+                  </td>
+                  <td className="tabular hidden whitespace-nowrap py-1.5 pr-3 text-right sm:table-cell print:table-cell">
+                    <Rupiah nilai={r.omzet} />
+                  </td>
+                  <td className="tabular whitespace-nowrap py-1.5 pr-3 text-right"><Rupiah nilai={r.insentif} /></td>
+                  <td className="tabular whitespace-nowrap py-1.5 text-right"><Rupiah nilai={r.bonus} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-2 text-xs text-slate-500">
+            Insentif = 0,1% omzet (selalu cair) · Bonus = 0,3% omzet (hanya divisi yang capai target), dijumlah lalu dibagi rata ke {total.jumlahPegawai || "0"} orang.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

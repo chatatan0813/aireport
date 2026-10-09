@@ -1,4 +1,4 @@
-import type { InsentifGroup } from "./insentif";
+import type { InsentifGroup, InsentifRincianDivisi } from "./insentif";
 
 // 6 divisi yang jadi basis insentif Tim Media -- KONVEKSI sengaja TIDAK
 // termasuk (itu punya pool insentif sendiri, lihat KonveksiInsentifService
@@ -35,13 +35,18 @@ export function hitungTimMedia(divisiList: DivisiOmzet[], anggota: AnggotaTimMed
   let poolInsentif = 0;
   let poolBonus = 0;
   let jumlahTercapai = 0;
+  const rincianDivisi: InsentifRincianDivisi[] = [];
 
   for (const d of relevan) {
-    poolInsentif += d.omzet * RATE_INSENTIF;
-    if (d.target > 0 && d.omzet >= d.target) {
-      poolBonus += d.omzet * RATE_BONUS;
-      jumlahTercapai += 1;
-    }
+    const insentifDivisi = Math.round(d.omzet * RATE_INSENTIF);
+    const tercapai = d.target > 0 && d.omzet >= d.target;
+    const bonusDivisi = tercapai ? Math.round(d.omzet * RATE_BONUS) : 0;
+
+    poolInsentif += insentifDivisi;
+    poolBonus += bonusDivisi;
+    if (tercapai) jumlahTercapai += 1;
+
+    rincianDivisi.push({ divisi: d.nama, omzet: d.omzet, target: d.target, tercapai, insentif: insentifDivisi, bonus: bonusDivisi });
   }
 
   const n = anggota.length;
@@ -65,6 +70,7 @@ export function hitungTimMedia(divisiList: DivisiOmzet[], anggota: AnggotaTimMed
     keterangan: `${jumlahTercapai} dari ${DIVISI_TIM_MEDIA.length} divisi capai target bulan ini`,
     catatan: null,
     pegawai,
+    rincianDivisi,
   };
 }
 

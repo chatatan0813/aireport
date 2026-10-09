@@ -10,7 +10,7 @@ describe("filterTimMedia", () => {
       baris("Muhammad Bahrul Fahmi", "Creative", "Content creator & Desain grafis"),
     ];
     const hasil = filterTimMedia(rows);
-    expect(hasil.map((a) => a.nama)).toEqual(["Alpri Andrian", "Muhammad Reza", "Muhammad Bahrul Fahmi"]);
+    expect(hasil.map((a) => a.nama)).toEqual(["Muhammad Reza", "Muhammad Bahrul Fahmi"]);
   });
 
   it("excludes a same-jabatan row whose cabang is a toko, not Creative (the real Ery Rusadi case)", () => {
@@ -19,17 +19,16 @@ describe("filterTimMedia", () => {
       baris("Muhammad Reza", "Creative", "Content creator & Desain grafis"),
     ];
     const hasil = filterTimMedia(rows);
-    expect(hasil.map((a) => a.nama)).toEqual(["Alpri Andrian", "Muhammad Reza"]);
+    expect(hasil.map((a) => a.nama)).toEqual(["Muhammad Reza"]);
   });
 
-  it("always puts Alpri Andrian first as Head even with an empty or unrelated sheet", () => {
-    expect(filterTimMedia([]).map((a) => a.nama)).toEqual(["Alpri Andrian"]);
-    expect(filterTimMedia([baris("Someone Else", "CHTTN", "Kasir")]).map((a) => a.nama)).toEqual(["Alpri Andrian"]);
+  it("excludes a Creative-cabang row with a different jabatan", () => {
+    const rows = [baris("Orang Lain", "Creative", "Admin & Accounting")];
+    expect(filterTimMedia(rows)).toEqual([]);
   });
 
-  it("does not add Alpri Andrian twice if the sheet itself also lists him under the filter", () => {
-    const rows = [baris("Alpri Andrian", "Creative", "Content creator & Desain grafis")];
-    const hasil = filterTimMedia(rows);
-    expect(hasil.filter((a) => a.nama === "Alpri Andrian")).toHaveLength(1);
+  it("returns an empty roster for an empty or unrelated sheet -- no manual head added anymore", () => {
+    expect(filterTimMedia([])).toEqual([]);
+    expect(filterTimMedia([baris("Someone Else", "CHTTN", "Kasir")])).toEqual([]);
   });
 });
