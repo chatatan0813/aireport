@@ -1,5 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { bulanSebelum, bulanValid, labelBulan, normalisasiGroups, totalGroup, totalSemua } from "./insentif";
+import { bulanIni, bulanSebelum, bulanValid, labelBulan, normalisasiGroups, totalGroup, totalSemua } from "./insentif";
+
+describe("bulanIni", () => {
+  it("reads the calendar month off local Date getters, not toISOString/UTC", () => {
+    // Jam device 1 Jan 2027 00:30 lokal -- kalau sampai pakai toISOString()
+    // (UTC) ini bisa salah mundur ke Desember tergantung offset device.
+    expect(bulanIni(new Date(2027, 0, 1, 0, 30))).toBe("2027-01");
+    expect(bulanIni(new Date(2026, 9, 9, 12, 0))).toBe("2026-10");
+  });
+});
 
 describe("bulanValid", () => {
   it("accepts YYYY-MM only", () => {

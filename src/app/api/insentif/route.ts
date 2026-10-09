@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchInsentif } from "@/lib/server/insentif";
-import type { Periode } from "@/lib/insentif";
+import { bulanBerjalanWib, fetchInsentif } from "@/lib/server/insentif";
+import { bulanValid } from "@/lib/insentif";
 
-// Insentif & bonus semua karyawan untuk tab "Insentif": ?periode=ini (bulan
-// berjalan, default) atau ?periode=lalu. Bulan kalendernya ditentukan server
-// (WIB), bukan jam perangkat yang membuka dashboard.
+// Insentif & bonus semua karyawan untuk tab "Insentif": ?bulan=YYYY-MM
+// (bulan manapun yang dipilih di dropdown). Kalau tidak dikirim, fallback ke
+// bulan berjalan dalam WIB (server jalan di UTC, jadi tidak boleh pakai jam
+// lokal server untuk default-nya).
 export async function GET(req: NextRequest) {
-  const param = req.nextUrl.searchParams.get("periode") ?? "ini";
-  if (param !== "ini" && param !== "lalu") {
-    return NextResponse.json({ error: "periode harus 'ini' atau 'lalu'" }, { status: 400 });
+  const param = req.nextUrl.searchParams.get("bulan");
+  const bulan = param ?? bulanBerjalanWib();
+  if (!bulanValid(bulan)) {
+    return NextResponse.json({ error: "bulan harus format YYYY-MM" }, { status: 400 });
   }
-  const periode: Periode = param;
 
   try {
-    return NextResponse.json(await fetchInsentif(periode));
+    return NextResponse.json(await fetchInsentif(bulan));
   } catch (err) {
     console.error("GET /api/insentif failed:", err);
     return NextResponse.json({ error: "Gagal memuat data insentif, hubungi admin" }, { status: 500 });

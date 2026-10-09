@@ -1,4 +1,4 @@
-import { bulanSebelum, normalisasiGroups, type InsentifGroup, type InsentifResponse, type Periode } from "../insentif";
+import { normalisasiGroups, type InsentifGroup, type InsentifResponse } from "../insentif";
 
 // Urutan di sini = urutan tampil di tab "Insentif": CHTTN (toko + Konveksi),
 // lalu CBCST (ChatBarber + ChatShoeTreatment per cabang), lalu ChatBox.
@@ -13,14 +13,14 @@ const BATAS_WAKTU_MS = 20_000;
 // Bulan kalender dalam WIB (UTC+7) -- sama dengan rentangBulanBerjalan() di
 // live.ts dan workflow n8n, supaya "bulan ini" di tab Live dan tab Insentif
 // selalu bulan yang sama (server jalan di UTC, jadi tidak boleh pakai jam lokal).
-export function bulanUntukPeriode(periode: Periode, now: Date = new Date()): string {
-  const bulanIni = new Date(now.getTime() + 7 * 3600 * 1000).toISOString().slice(0, 7);
-  return periode === "lalu" ? bulanSebelum(bulanIni) : bulanIni;
+// Dipakai sebagai default server-side kalau pemanggil tidak kirim ?bulan=.
+export function bulanBerjalanWib(now: Date = new Date()): string {
+  return new Date(now.getTime() + 7 * 3600 * 1000).toISOString().slice(0, 7);
 }
 
 export async function fetchInsentif(
-  periode: Periode,
-  opsi: { fetchImpl?: typeof fetch; now?: Date } = {},
+  bulan: string,
+  opsi: { fetchImpl?: typeof fetch } = {},
 ): Promise<InsentifResponse> {
   // Token yang sama dengan tab "Live" -- ketiga aplikasi menerima
   // EXTERNAL_API_TOKEN_AIREPORT di endpoint daily-report maupun insentif.
@@ -28,7 +28,6 @@ export async function fetchInsentif(
   if (!token) throw new Error("AIREPORT_LIVE_TOKEN is not set");
 
   const fetchImpl = opsi.fetchImpl ?? fetch;
-  const bulan = bulanUntukPeriode(periode, opsi.now);
   const gagal: string[] = [];
 
   const hasil = await Promise.all(
@@ -60,7 +59,6 @@ export async function fetchInsentif(
   // supaya pesan peringatannya stabil antar-refresh.
   return {
     bulan,
-    periode,
     groups: hasil.flat(),
     gagal: SUMBER.map((s) => s.nama).filter((nama) => gagal.includes(nama)),
   };

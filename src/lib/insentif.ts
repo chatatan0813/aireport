@@ -21,11 +21,8 @@ export type InsentifGroup = {
   pegawai: InsentifPegawai[];
 };
 
-export type Periode = "ini" | "lalu";
-
 export type InsentifResponse = {
   bulan: string; // YYYY-MM
-  periode: Periode;
   groups: InsentifGroup[];
   gagal: string[];
 };
@@ -52,6 +49,17 @@ export function bulanSebelum(bulan: string): string {
   const y = bulanAngka === 1 ? tahun - 1 : tahun;
   const m = bulanAngka === 1 ? 12 : bulanAngka - 1;
   return `${y}-${String(m).padStart(2, "0")}`;
+}
+
+/**
+ * Bulan kalender "sekarang" (YYYY-MM) dari jam PERANGKAT PEMBUKA (browser) --
+ * dipakai di client untuk nilai awal & batas atas dropdown bulan. Sengaja
+ * pakai getter lokal (bukan toISOString/UTC): ini kode browser, jadi jam
+ * lokalnya sudah benar WIB, beda dengan server yang jalan di UTC (lihat
+ * bulanBerjalanWib() di lib/server/insentif.ts untuk default sisi server).
+ */
+export function bulanIni(now: Date = new Date()): string {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
 function angka(v: unknown): number {

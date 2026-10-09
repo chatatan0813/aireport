@@ -1,28 +1,19 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { bulanUntukPeriode, fetchInsentif } from "./insentif";
+import { bulanBerjalanWib, fetchInsentif } from "./insentif";
 
-describe("bulanUntukPeriode", () => {
+describe("bulanBerjalanWib", () => {
   it("uses the WIB calendar month, not the server's UTC month", () => {
     // 30 Sep 18:00 UTC = 1 Okt 01:00 WIB -> sudah Oktober.
-    const now = new Date("2026-09-30T18:00:00Z");
-    expect(bulanUntukPeriode("ini", now)).toBe("2026-10");
-    expect(bulanUntukPeriode("lalu", now)).toBe("2026-09");
+    expect(bulanBerjalanWib(new Date("2026-09-30T18:00:00Z"))).toBe("2026-10");
   });
 
   it("is still September one hour earlier", () => {
-    const now = new Date("2026-09-30T16:59:00Z"); // 23:59 WIB
-    expect(bulanUntukPeriode("ini", now)).toBe("2026-09");
-    expect(bulanUntukPeriode("lalu", now)).toBe("2026-08");
-  });
-
-  it("rolls 'lalu' back over the year boundary", () => {
-    expect(bulanUntukPeriode("lalu", new Date("2027-01-15T03:00:00Z"))).toBe("2026-12");
+    expect(bulanBerjalanWib(new Date("2026-09-30T16:59:00Z"))).toBe("2026-09"); // 23:59 WIB
   });
 });
 
 describe("fetchInsentif", () => {
   const tokenSebelum = process.env.AIREPORT_LIVE_TOKEN;
-  const now = new Date("2026-10-09T02:00:00Z");
 
   beforeEach(() => {
     process.env.AIREPORT_LIVE_TOKEN = "token-uji";
@@ -54,17 +45,16 @@ describe("fetchInsentif", () => {
 
   const ok = (groups: unknown[]) => () => Response.json({ bulan: "2026-10", groups });
 
-  it("asks all three apps for the same month with the API key and merges groups in display order", async () => {
+  it("asks all three apps for the chosen month with the API key and merges groups in display order", async () => {
     const { impl, panggilan } = fetchPalsu({
       "chttn.": ok([group("CHTTN", "Andi", 100), group("KONVEKSI", "Ali", 200)]),
       "cbcst.": ok([group("ChatBarber Cempaka", "Husaini", 300)]),
       "chatbox.": ok([group("ChatBox", "Adit", 400)]),
     });
 
-    const hasil = await fetchInsentif("ini", { fetchImpl: impl, now });
+    const hasil = await fetchInsentif("2026-10", { fetchImpl: impl });
 
     expect(hasil.bulan).toBe("2026-10");
-    expect(hasil.periode).toBe("ini");
     expect(hasil.gagal).toEqual([]);
     expect(hasil.groups.map((g) => `${g.sumber}/${g.divisi}`)).toEqual([
       "CHTTN/CHTTN",
@@ -79,13 +69,13 @@ describe("fetchInsentif", () => {
     }
   });
 
-  it("requests the previous month for periode 'lalu'", async () => {
+  it("requests an arbitrary past month exactly as given", async () => {
     const { impl, panggilan } = fetchPalsu({ "chttn.": ok([]), "cbcst.": ok([]), "chatbox.": ok([]) });
 
-    const hasil = await fetchInsentif("lalu", { fetchImpl: impl, now });
+    const hasil = await fetchInsentif("2026-02", { fetchImpl: impl });
 
-    expect(hasil.bulan).toBe("2026-09");
-    expect(panggilan.every((p) => p.url.endsWith("?bulan=2026-09"))).toBe(true);
+    expect(hasil.bulan).toBe("2026-02"); // bulan yang diminta, bukan dari body respons palsu
+    expect(panggilan.every((p) => p.url.endsWith("?bulan=2026-02"))).toBe(true);
   });
 
   it("reports an app as failed (and keeps the others) on HTTP error, network error, or a non-insentif body", async () => {
@@ -97,7 +87,7 @@ describe("fetchInsentif", () => {
       "chatbox.": ok([group("ChatBox", "Adit", 400)]),
     });
 
-    const hasil = await fetchInsentif("ini", { fetchImpl: impl, now });
+    const hasil = await fetchInsentif("2026-10", { fetchImpl: impl });
 
     expect(hasil.gagal).toEqual(["CHTTN", "CBCST"]);
     expect(hasil.groups.map((g) => g.divisi)).toEqual(["ChatBox"]);
@@ -110,7 +100,7 @@ describe("fetchInsentif", () => {
       "chatbox.": () => new Response("<html>", { status: 200 }),
     });
 
-    const hasil = await fetchInsentif("ini", { fetchImpl: impl, now });
+    const hasil = await fetchInsentif("2026-10", { fetchImpl: impl });
 
     expect(hasil.gagal).toEqual(["CBCST", "ChatBox"]);
   });
@@ -119,7 +109,7 @@ describe("fetchInsentif", () => {
     delete process.env.AIREPORT_LIVE_TOKEN;
     const { impl, panggilan } = fetchPalsu({});
 
-    await expect(fetchInsentif("ini", { fetchImpl: impl, now })).rejects.toThrow("AIREPORT_LIVE_TOKEN");
+    await expect(fetchInsentif("2026-10", { fetchImpl: impl })).rejects.toThrow("AIREPORT_LIVE_TOKEN");
     expect(panggilan).toHaveLength(0);
   });
 });

@@ -4,20 +4,15 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { formatRupiah } from "@/lib/rupiah";
-import { labelBulan, totalGroup, totalSemua } from "@/lib/insentif";
-import type { InsentifGroup, InsentifResponse, Periode } from "@/lib/insentif";
-
-const PERIODE: { key: Periode; label: string }[] = [
-  { key: "ini", label: "Bulan ini" },
-  { key: "lalu", label: "Bulan lalu" },
-];
+import { bulanIni, labelBulan, totalGroup, totalSemua } from "@/lib/insentif";
+import type { InsentifGroup, InsentifResponse } from "@/lib/insentif";
 
 // Disimpan di luar komponen supaya pindah tab lalu balik ke "Insentif" tidak
 // menarik ulang ketiga aplikasi -- panel ini di-unmount tiap ganti tab. Data
-// baru hanya diambil saat pertama buka tiap periode atau saat tekan Refresh.
-const cache: Partial<Record<Periode, InsentifResponse>> = {};
+// baru hanya diambil saat pertama buka tiap bulan atau saat tekan Refresh.
+const cache: Partial<Record<string, InsentifResponse>> = {};
 
-type PerPeriode<T> = Partial<Record<Periode, T>>;
+type PerBulan<T> = Partial<Record<string, T>>;
 
 function Rupiah({ nilai, tebal = false }: { nilai: number; tebal?: boolean }) {
   if (nilai === 0) return <span className="text-slate-600">—</span>;
@@ -118,18 +113,19 @@ function KartuDivisi({ group }: { group: InsentifGroup }) {
 
 export default function InsentifPanel() {
   const router = useRouter();
-  const [periode, setPeriode] = useState<Periode>("ini");
-  const [data, setData] = useState<PerPeriode<InsentifResponse>>(() => ({ ...cache }));
-  const [loading, setLoading] = useState<PerPeriode<boolean>>({});
-  const [error, setError] = useState<PerPeriode<string>>({});
+  const bulanSekarang = bulanIni();
+  const [bulan, setBulan] = useState(bulanSekarang);
+  const [data, setData] = useState<PerBulan<InsentifResponse>>(() => ({ ...cache }));
+  const [loading, setLoading] = useState<PerBulan<boolean>>({});
+  const [error, setError] = useState<PerBulan<string>>({});
 
-  // State disimpan per periode: jawaban "bulan lalu" yang datang terlambat
-  // tidak boleh menimpa tampilan "bulan ini" yang sedang dibuka.
+  // State disimpan per bulan: jawaban bulan lain yang datang terlambat tidak
+  // boleh menimpa tampilan bulan yang sedang dibuka kalau user sudah pindah.
   const muat = useCallback(
-    (p: Periode) => {
-      setLoading((l) => ({ ...l, [p]: true }));
-      setError((e) => ({ ...e, [p]: undefined }));
-      fetch(`/api/insentif?periode=${p}`)
+    (b: string) => {
+      setLoading((l) => ({ ...l, [b]: true }));
+      setError((e) => ({ ...e, [b]: undefined }));
+      fetch(`/api/insentif?bulan=${b}`)
         .then((res) => {
           if (res.status === 401) {
             router.push("/login");
@@ -140,49 +136,42 @@ export default function InsentifPanel() {
         })
         .then((json) => {
           if (!json) return;
-          cache[p] = json;
-          setData((d) => ({ ...d, [p]: json }));
+          cache[b] = json;
+          setData((d) => ({ ...d, [b]: json }));
         })
-        .catch(() => setError((e) => ({ ...e, [p]: "Gagal memuat data insentif, hubungi admin" })))
-        .finally(() => setLoading((l) => ({ ...l, [p]: false })));
+        .catch(() => setError((e) => ({ ...e, [b]: "Gagal memuat data insentif, hubungi admin" })))
+        .finally(() => setLoading((l) => ({ ...l, [b]: false })));
     },
     [router],
   );
 
   useEffect(() => {
-    if (!cache[periode]) muat(periode);
-  }, [periode, muat]);
+    if (!cache[bulan]) muat(bulan);
+  }, [bulan, muat]);
 
-  const hasil = data[periode];
-  const sedangMuat = loading[periode] ?? false;
-  const pesanError = error[periode];
+  const hasil = data[bulan];
+  const sedangMuat = loading[bulan] ?? false;
+  const pesanError = error[bulan];
   const total = hasil ? totalSemua(hasil.groups) : null;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex rounded-full border border-[#1f2023] bg-[#111214] p-1">
-            {PERIODE.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => setPeriode(p.key)}
-                aria-pressed={periode === p.key}
-                className={`rounded-full px-3 py-1 text-sm font-medium transition ${
-                  periode === p.key ? "bg-lime-400/10 text-lime-300 ring-1 ring-inset ring-lime-400/40" : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
+          <input
+            type="month"
+            value={bulan}
+            max={bulanSekarang}
+            onChange={(e) => e.target.value && setBulan(e.target.value)}
+            className="rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-200 [color-scheme:dark] focus:border-lime-400/40 focus:outline-none"
+          />
           <p className="text-sm text-slate-400">
-            {hasil ? labelBulan(hasil.bulan) : periode === "ini" ? "Bulan berjalan" : "Bulan lalu"}
-            {periode === "ini" ? " · masih berjalan, angka sampai hari ini" : " · satu bulan penuh"}
+            {hasil ? labelBulan(hasil.bulan) : labelBulan(bulan)}
+            {bulan === bulanSekarang ? " · masih berjalan, angka sampai hari ini" : " · satu bulan penuh"}
           </p>
         </div>
         <button
-          onClick={() => muat(periode)}
+          onClick={() => muat(bulan)}
           disabled={sedangMuat}
           className="shrink-0 rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300 disabled:opacity-50"
         >
@@ -201,7 +190,7 @@ export default function InsentifPanel() {
       {!hasil && sedangMuat && <p className="text-slate-400">Memuat data insentif...</p>}
 
       {hasil && total && (
-        <motion.div key={periode} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="space-y-4">
+        <motion.div key={bulan} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="space-y-4">
           <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[
               { label: "Total insentif", isi: <Rupiah nilai={total.insentif} /> },
