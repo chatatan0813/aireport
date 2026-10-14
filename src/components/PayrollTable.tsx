@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { PayrollEntri } from "@/lib/transform";
 import { formatRupiah } from "@/lib/rupiah";
 import { parseRincianPayroll } from "@/lib/payroll-rincian";
+import { hitungPembayaranBank } from "@/lib/payroll-bank";
 import { useCetakKartu } from "@/lib/use-cetak-kartu";
 
 function Rupiah({ nilai, tebal = false }: { nilai: number; tebal?: boolean }) {
@@ -36,6 +37,8 @@ function KartuPayroll({
   // tidak ditampilkan (itu angka perhitungan internal, bukan untuk slip
   // yang dilihat karyawan) -- lihat src/lib/payroll-rincian.ts.
   const rincian = parseRincianPayroll(entri.rincianDivisi);
+  const pembayaran = hitungPembayaranBank(rincian, entri.totalThp);
+  const persenTeks = (p: number) => `${Math.round(p * 100)}%`;
 
   return (
     <div className={`kartu-cetak rounded-3xl border border-[#1f2023] bg-[#111214] p-5 ${sedangCetak ? "print:hidden" : ""}`}>
@@ -100,6 +103,49 @@ function KartuPayroll({
                     <Rupiah nilai={r.bonus} />
                     {r.bonusPersen !== null && <span className="text-xs text-slate-500"> ({r.bonusPersen}%)</span>}
                   </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {pembayaran.bank.length > 0 && (
+        <div className="mt-4 overflow-x-auto border-t border-[#1f2023] pt-3">
+          <p className="mb-2 text-xs font-medium text-slate-500">
+            Rincian pembayaran per bank <span className="text-slate-600">(proporsi laba bersih divisi)</span>
+          </p>
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-[#1f2023] text-slate-500">
+                <th className="py-1.5 pr-3 font-medium">Divisi</th>
+                <th className="py-1.5 pr-3 font-medium">Bank</th>
+                <th className="hidden py-1.5 pr-3 text-right font-medium sm:table-cell print:table-cell">Laba Bersih</th>
+                <th className="py-1.5 text-right font-medium">Persentase</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pembayaran.divisi.map((d, i) => (
+                <tr key={`${d.divisi}-${i}`} className="border-b border-[#1f2023]/60">
+                  <td className="py-1.5 pr-3 text-slate-200">{d.divisi}</td>
+                  <td className="py-1.5 pr-3 text-slate-300">{d.bank}</td>
+                  <td className="tabular hidden whitespace-nowrap py-1.5 pr-3 text-right sm:table-cell print:table-cell">
+                    {d.labaBersih === null ? <span className="text-slate-600">—</span> : <Rupiah nilai={d.labaBersih} />}
+                  </td>
+                  <td className="tabular py-1.5 text-right text-slate-300">{persenTeks(d.persen)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <p className="mb-2 mt-4 text-xs font-medium text-slate-500">Pembayaran dilakukan</p>
+          <table className="w-full text-left text-sm">
+            <tbody>
+              {pembayaran.bank.map((b) => (
+                <tr key={b.bank} className="border-b border-[#1f2023]/60">
+                  <td className="py-1.5 pr-3 font-medium text-slate-200">{b.bank}</td>
+                  <td className="tabular py-1.5 pr-3 text-right text-slate-300">{persenTeks(b.persen)}</td>
+                  <td className="tabular py-1.5 text-right"><Rupiah nilai={b.nominal} tebal /></td>
                 </tr>
               ))}
             </tbody>
