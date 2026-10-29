@@ -76,7 +76,7 @@ function KartuDivisi({
           {/* Sengaja tidak di-truncate: "ChatShoeTreatment Cempaka" dan "...Pinus" jadi tak terbedakan kalau dipotong. */}
           <h3 className="font-display font-semibold text-slate-100">{group.divisi}</h3>
         </div>
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
           <BadgeTarget tercapai={group.targetTercapai} />
           <span className="text-xs text-slate-500">{total.jumlahPegawai} orang</span>
           <span className="tabular font-display text-sm"><Rupiah nilai={total.total} tebal /></span>
