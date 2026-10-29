@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Divisi } from "@/lib/transform";
 import { bulanIni } from "@/lib/insentif";
 import type { Bank } from "@/lib/payroll-bank";
 import { formatRupiah } from "@/lib/rupiah";
 import { formatTanggal, formatTanggalIso } from "@/lib/tanggal";
-import { PENERIMA_GAJI, divisiDipegang, hitungTransferSisaGaji } from "@/lib/kalkulator-gaji";
+import { DIVISI_TIM_MEDIA_AWALAN, PENERIMA_GAJI, divisiDipegang, hitungTransferSisaGaji } from "@/lib/kalkulator-gaji";
 
 const BANK: Exclude<Bank, "Lainnya">[] = ["BSI", "BTN", "Mandiri"];
 
@@ -21,6 +21,7 @@ type DataLaba = { divisi: Divisi[]; gagal: string[]; awal: string; akhir: string
 
 // Disimpan di luar komponen supaya pindah tab lalu balik tidak menarik ulang data.
 const cache: Partial<Record<string, DataLaba>> = {};
+let cacheAnggotaTimMedia: string[] | null = null;
 
 export default function KalkulatorGaji() {
   const router = useRouter();
@@ -61,12 +62,30 @@ export default function KalkulatorGaji() {
     if (!cache[bulan]) muat(bulan);
   }, [bulan, muat]);
 
+  // Anggota Tim Media dari sheet HRD (cabang Creative) -- sama sumbernya dengan tab Insentif.
+  const [anggotaTimMedia, setAnggotaTimMedia] = useState<string[] | null>(cacheAnggotaTimMedia);
+  const [errorTimMedia, setErrorTimMedia] = useState(false);
+  useEffect(() => {
+    if (cacheAnggotaTimMedia) return;
+    fetch("/api/tim-media/anggota")
+      .then((res) => (res.ok ? (res.json() as Promise<{ anggota: string[] }>) : Promise.reject()))
+      .then((json) => {
+        cacheAnggotaTimMedia = json.anggota;
+        setAnggotaTimMedia(json.anggota);
+      })
+      .catch(() => setErrorTimMedia(true));
+  }, []);
+
   const live = dataPerBulan[bulan] ?? null;
   const liveLoading = loading;
   const onRefresh = () => muat(bulan);
 
-  const baris = PENERIMA_GAJI.map((p) => {
-    const nominal = sisa[p.nama] ?? 0;
+  const penerima = [
+    ...PENERIMA_GAJI.map((p) => ({ ...p, kunci: p.nama, timMedia: false })),
+    ...(anggotaTimMedia ?? []).map((nama) => ({ nama, divisi: DIVISI_TIM_MEDIA_AWALAN, kunci: `media:${nama}`, timMedia: true })),
+  ];
+  const baris = penerima.map((p) => {
+    const nominal = sisa[p.kunci] ?? 0;
     const transfer = live ? hitungTransferSisaGaji(p.divisi, live.divisi, nominal) : [];
     const perBank = Object.fromEntries(transfer.map((t) => [t.bank, t]));
     const adaLaba = live ? divisiDipegang(p.divisi, live.divisi).some((d) => (d.laba ?? 0) > 0) : false;
@@ -115,6 +134,9 @@ export default function KalkulatorGaji() {
         </div>
       )}
       {!live && liveLoading && <p className="text-slate-400">Memuat laba bulan berjalan...</p>}
+      {errorTimMedia && (
+        <p className="text-sm text-amber-400 print:hidden">Gagal memuat daftar anggota Tim Media dari sheet HRD — baris Tim Media belum tampil.</p>
+      )}
 
       {live && (
         <div className="kartu-cetak overflow-x-auto rounded-3xl border border-[#1f2023] bg-[#111214] p-5">
@@ -135,8 +157,16 @@ export default function KalkulatorGaji() {
               </tr>
             </thead>
             <tbody>
-              {baris.map((r) => (
-                <tr key={r.nama} className="border-b border-[#1f2023]/60 align-top">
+              {baris.map((r, i) => (
+                <Fragment key={r.kunci}>
+                {r.timMedia && !baris[i - 1]?.timMedia && (
+                  <tr>
+                    <td colSpan={2 + BANK.length} className="pb-1 pt-4 text-xs font-medium text-slate-500">
+                      Tim Media <span className="text-slate-600">(6 divisi: ChatBarber, ChatShoeTreatment, CHTTN, ChatBox)</span>
+                    </td>
+                  </tr>
+                )}
+                <tr className="border-b border-[#1f2023]/60 align-top">
                   <td className="py-2 pr-3 font-medium text-slate-100">{r.nama}</td>
                   <td className="py-2 pr-3">
                     <div className="flex items-center gap-1 rounded-lg border border-[#1f2023] bg-[#0a0a0c] px-2 focus-within:border-lime-400/40 print:border-0 print:bg-transparent print:px-0">
@@ -146,7 +176,7 @@ export default function KalkulatorGaji() {
                         value={r.nominal ? formatRupiah(r.nominal) : ""}
                         onChange={(e) => {
                           const angka = Number(e.target.value.replace(/\D/g, "")) || 0;
-                          setSisa((s) => ({ ...s, [r.nama]: angka }));
+                          setSisa((s) => ({ ...s, [r.kunci]: angka }));
                         }}
                         placeholder="0"
                         className="tabular w-28 bg-transparent py-1 text-sm text-slate-100 focus:outline-none"
@@ -165,6 +195,7 @@ export default function KalkulatorGaji() {
                     </td>
                   ))}
                 </tr>
+                </Fragment>
               ))}
             </tbody>
             <tfoot>

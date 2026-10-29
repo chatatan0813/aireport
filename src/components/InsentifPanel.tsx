@@ -8,6 +8,7 @@ import { bulanIni, labelBulan, totalGroup, totalSemua } from "@/lib/insentif";
 import type { InsentifGroup, InsentifResponse } from "@/lib/insentif";
 import { useCetakKartu } from "@/lib/use-cetak-kartu";
 import { formatTanggal } from "@/lib/tanggal";
+import { hitungPembayaranBank } from "@/lib/payroll-bank";
 
 // Disimpan di luar komponen supaya pindah tab lalu balik ke "Insentif" tidak
 // menarik ulang ketiga aplikasi -- panel ini di-unmount tiap ganti tab. Data
@@ -44,6 +45,70 @@ function BadgeTarget({ tercapai }: { tercapai: boolean | null }) {
         ? ["Target tercapai", "bg-emerald-950 text-emerald-400"]
         : ["Target belum tercapai", "bg-rose-950 text-rose-400"];
   return <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${kelas}`}>{teks}</span>;
+}
+
+// Rekening pembayar insentif Tim Media (2026-10-29, keputusan owner): persen
+// tiap bank = porsi insentif+bonus yang DIHASILKAN divisi di bank itu (bukan
+// laba) -- jadi uang keluar dari rekening divisi persis sebesar yang dia
+// hasilkan. Bobot dimasukkan lewat field labaBersih hitungPembayaranBank.
+function RincianBankTimMedia({ group, totalTim }: { group: InsentifGroup; totalTim: number }) {
+  const bobot = (group.rincianDivisi ?? []).map((r) => ({ divisi: r.divisi, labaBersih: r.insentif + r.bonus, status: r.status }));
+  const tim = hitungPembayaranBank(bobot, totalTim);
+  if (tim.bank.length === 0) return null;
+  const totalPerOrang = group.pegawai.map((p) => p.total);
+  const rata = totalPerOrang.length > 0 && totalPerOrang.every((t) => t === totalPerOrang[0]);
+  const perOrang = rata ? hitungPembayaranBank(bobot, totalPerOrang[0]).bank : [];
+  const persenTeks = (p: number) => `${Math.round(p * 100)}%`;
+
+  return (
+    <div className="mt-4 border-t border-[#1f2023] pt-3">
+      <p className="mb-2 text-xs font-medium text-slate-500">
+        Rincian pembayaran per bank <span className="text-slate-600">(proporsi insentif + bonus tiap divisi)</span>
+      </p>
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="border-b border-[#1f2023] text-slate-500">
+            <th className="py-1.5 pr-3 font-medium">Divisi</th>
+            <th className="py-1.5 pr-3 font-medium">Bank</th>
+            <th className="py-1.5 text-right font-medium">Persentase</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tim.divisi.map((d) => (
+            <tr key={d.divisi} className="border-b border-[#1f2023]/60">
+              <td className="py-1.5 pr-3 text-slate-200">{d.divisi}</td>
+              <td className="py-1.5 pr-3 text-slate-300">{d.bank}</td>
+              <td className="tabular py-1.5 text-right text-slate-300">{persenTeks(d.persen)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <p className="mb-2 mt-4 text-xs font-medium text-slate-500">Pembayaran dilakukan</p>
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="border-b border-[#1f2023] text-slate-500">
+            <th className="py-1.5 pr-3 font-medium">Bank</th>
+            <th className="py-1.5 pr-3 text-right font-medium">%</th>
+            {perOrang.length > 0 && <th className="py-1.5 pr-3 text-right font-medium">Per orang</th>}
+            <th className="py-1.5 text-right font-medium">Total tim</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tim.bank.map((b, i) => (
+            <tr key={b.bank} className="border-b border-[#1f2023]/60">
+              <td className="py-1.5 pr-3 font-medium text-slate-200">{b.bank}</td>
+              <td className="tabular py-1.5 pr-3 text-right text-slate-300">{persenTeks(b.persen)}</td>
+              {perOrang.length > 0 && (
+                <td className="tabular py-1.5 pr-3 text-right"><Rupiah nilai={perOrang[i]?.nominal ?? 0} /></td>
+              )}
+              <td className="tabular py-1.5 text-right"><Rupiah nilai={b.nominal} tebal /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 function KartuDivisi({
@@ -189,6 +254,7 @@ function KartuDivisi({
           <p className="mt-2 text-xs text-slate-500">
             Insentif = 0,1% omzet (selalu cair) · Bonus = 0,3% omzet (hanya divisi yang capai target), dijumlah lalu dibagi rata ke {total.jumlahPegawai || "0"} orang.
           </p>
+          <RincianBankTimMedia group={group} totalTim={total.total} />
         </div>
       )}
       </div>

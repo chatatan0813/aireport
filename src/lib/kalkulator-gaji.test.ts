@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Divisi } from "./transform";
-import { PENERIMA_GAJI, divisiDipegang, hitungTransferSisaGaji } from "./kalkulator-gaji";
+import { DIVISI_TIM_MEDIA_AWALAN, PENERIMA_GAJI, divisiDipegang, hitungTransferSisaGaji } from "./kalkulator-gaji";
 
 const d = (nama: string, laba: number | null): Divisi => ({
   nama, laba, omzet: 0, capaian: 0, target: 0, satuanTarget: "Rupiah", status: "", laporanAi: "", sumberAi: "",
@@ -40,6 +40,12 @@ describe("kalkulator sisa gaji", () => {
     const t = hitungTransferSisaGaji(awalan("Fitri Isnawati"), live, 1_234_567);
     expect(t.map((b) => b.bank)).toEqual(["BSI", "Mandiri"]);
     expect(t.reduce((s, b) => s + b.nominal, 0)).toBe(1_234_567);
+  });
+
+  it("Tim Media: 6 divisi, tanpa Pomade dan KONVEKSI", () => {
+    expect(divisiDipegang(DIVISI_TIM_MEDIA_AWALAN, live).map((x) => x.nama)).toEqual([
+      "ChatBarber Cempaka", "ChatBarber Pinus", "ChatShoeTreatment Cempaka", "ChatShoeTreatment Pinus", "CHTTN", "ChatBox",
+    ]);
   });
 
   it("sisa gaji kosong/0 -> tidak ada transfer", () => {

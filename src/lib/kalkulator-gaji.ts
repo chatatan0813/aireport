@@ -23,6 +23,10 @@ export const PENERIMA_GAJI: { nama: string; divisi: string[] }[] = [
   { nama: "Rizki", divisi: [...CBCST_CHATBARBER, ...CBCST_CST, "chatbox", "chttn", "konveksi"] },
 ];
 
+// Tim Media: 6 divisi basis insentif mereka (tanpa KONVEKSI dan Pomade, lihat
+// tim-media.ts). Sisa gaji mereka juga dibagi sesuai proporsi laba divisi ini.
+export const DIVISI_TIM_MEDIA_AWALAN = ["chatbarber", "chatshoetreatment", "chttn", "chatbox"];
+
 /** Divisi Live yang dipegang orang ini (dicocokkan dari awalan nama divisi). */
 export function divisiDipegang(awalan: string[], divisi: Divisi[]): Divisi[] {
   return divisi.filter((d) => awalan.some((a) => d.nama.toLowerCase().startsWith(a)));
