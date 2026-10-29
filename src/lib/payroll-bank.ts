@@ -32,7 +32,7 @@ export type PembayaranDivisi = {
 export type PembayaranBank = { bank: Bank; persen: number; nominal: number };
 
 export function hitungPembayaranBank(
-  rincian: RincianDivisi[],
+  rincian: Pick<RincianDivisi, "divisi" | "labaBersih" | "status">[],
   totalThp: number
 ): { divisi: PembayaranDivisi[]; bank: PembayaranBank[] } {
   const labaPositif = rincian.map((r) => Math.max(r.labaBersih ?? 0, 0));

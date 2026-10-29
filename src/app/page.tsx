@@ -8,6 +8,7 @@ import OmzetChart from "@/components/OmzetChart";
 import RiwayatTable from "@/components/RiwayatTable";
 import PayrollTable from "@/components/PayrollTable";
 import InsentifPanel from "@/components/InsentifPanel";
+import KalkulatorGaji from "@/components/KalkulatorGaji";
 import type { SnapshotTerbaru, RiwayatEntri, PayrollEntri, PeriodeOption, Divisi } from "@/lib/transform";
 import { getPeriodeOptions, buildSnapshotForPeriode } from "@/lib/transform";
 import { formatTanggalIso } from "@/lib/tanggal";
@@ -26,7 +27,7 @@ type LiveResponse = {
   akhir: string;
 };
 
-const TABS = ["Live", "Ringkasan", "Riwayat", "Payroll", "Insentif"] as const;
+const TABS = ["Live", "Ringkasan", "Riwayat", "Payroll", "Insentif", "Kalkulator Gaji"] as const;
 type Tab = (typeof TABS)[number];
 
 const GRID_VARIANTS = {
@@ -68,7 +69,7 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if (tab === "Live" && !live && !liveLoading) muatLive();
+    if ((tab === "Live" || tab === "Kalkulator Gaji") && !live && !liveLoading) muatLive();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -237,6 +238,9 @@ export default function DashboardPage() {
       {tab === "Riwayat" && <RiwayatTable riwayat={data.riwayat} />}
       {tab === "Payroll" && <PayrollTable payroll={data.payroll} />}
       {tab === "Insentif" && <InsentifPanel />}
+      {tab === "Kalkulator Gaji" && (
+        <KalkulatorGaji live={live} liveLoading={liveLoading} liveError={liveError} onRefresh={muatLive} />
+      )}
       </motion.div>
       </AnimatePresence>
     </div>
