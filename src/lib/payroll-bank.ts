@@ -2,22 +2,22 @@
 //
 // Tiap divisi dibayar dari rekening perusahaannya sendiri: divisi CBCST
 // (ChatBarber, ChatShoeTreatment, Pomade) dari BSI, ChatBox dari BTN,
-// CHTTN dan KONVEKSI dari BRI. Total THP satu orang dibagi ke bank-bank itu
+// CHTTN dan KONVEKSI dari Mandiri (sebelumnya BRI, diganti owner 2026-10-29). Total THP satu orang dibagi ke bank-bank itu
 // SESUAI PROPORSI LABA BERSIH tiap divisi (keputusan owner: bukan dari
 // insentif+bonus yang dihasilkan tiap divisi). Divisi rugi / laba <= 0
 // dihitung 0%.
 
 import type { RincianDivisi } from "./payroll-rincian";
 
-export type Bank = "BSI" | "BTN" | "BRI" | "Lainnya";
+export type Bank = "BSI" | "BTN" | "Mandiri" | "Lainnya";
 
-const URUTAN_BANK: Bank[] = ["BSI", "BTN", "BRI", "Lainnya"];
+const URUTAN_BANK: Bank[] = ["BSI", "BTN", "Mandiri", "Lainnya"];
 
 export function bankDivisi(divisi: string): Exclude<Bank, "Lainnya"> | null {
   const d = divisi.toLowerCase();
   if (d.startsWith("chatbarber") || d.startsWith("chatshoetreatment") || d.startsWith("pomade")) return "BSI";
   if (d.startsWith("chatbox")) return "BTN";
-  if (d.startsWith("chttn") || d.startsWith("konveksi")) return "BRI";
+  if (d.startsWith("chttn") || d.startsWith("konveksi")) return "Mandiri";
   return null;
 }
 

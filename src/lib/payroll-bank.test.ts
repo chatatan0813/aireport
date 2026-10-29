@@ -27,18 +27,18 @@ const RIZKI_SEPTEMBER: RincianDivisi[] = [
 ];
 
 describe("bankDivisi", () => {
-  it("memetakan divisi CBCST ke BSI, ChatBox ke BTN, CHTTN/KONVEKSI ke BRI", () => {
+  it("memetakan divisi CBCST ke BSI, ChatBox ke BTN, CHTTN/KONVEKSI ke Mandiri", () => {
     expect(bankDivisi("ChatBarber Cempaka (+ Pomade Cempaka)")).toBe("BSI");
     expect(bankDivisi("ChatShoeTreatment Pinus")).toBe("BSI");
     expect(bankDivisi("Pomade Cempaka")).toBe("BSI");
     expect(bankDivisi("ChatBox")).toBe("BTN");
-    expect(bankDivisi("CHTTN")).toBe("BRI");
-    expect(bankDivisi("KONVEKSI")).toBe("BRI");
+    expect(bankDivisi("CHTTN")).toBe("Mandiri");
+    expect(bankDivisi("KONVEKSI")).toBe("Mandiri");
   });
 
   it("tidak peka huruf besar/kecil", () => {
     expect(bankDivisi("chatbox")).toBe("BTN");
-    expect(bankDivisi("Konveksi")).toBe("BRI");
+    expect(bankDivisi("Konveksi")).toBe("Mandiri");
   });
 
   it("divisi tak dikenal mengembalikan null", () => {
@@ -51,15 +51,15 @@ describe("hitungPembayaranBank", () => {
 
   it("persentase divisi = laba bersih / total laba bersih (cocok dengan contoh owner, dibulatkan)", () => {
     expect(hasil.divisi.map((d) => Math.round(d.persen * 100))).toEqual([3, 30, 14, 5, 11, 14, 24]);
-    expect(hasil.divisi.map((d) => d.bank)).toEqual(["BSI", "BSI", "BSI", "BSI", "BTN", "BRI", "BRI"]);
+    expect(hasil.divisi.map((d) => d.bank)).toEqual(["BSI", "BSI", "BSI", "BSI", "BTN", "Mandiri", "Mandiri"]);
   });
 
-  it("menjumlah per bank dengan urutan BSI, BTN, BRI dan persen 52/11/37", () => {
-    expect(hasil.bank.map((b) => b.bank)).toEqual(["BSI", "BTN", "BRI"]);
+  it("menjumlah per bank dengan urutan BSI, BTN, Mandiri dan persen 52/11/37", () => {
+    expect(hasil.bank.map((b) => b.bank)).toEqual(["BSI", "BTN", "Mandiri"]);
     expect(hasil.bank.map((b) => Math.round(b.persen * 100))).toEqual([52, 11, 37]);
   });
 
-  it("nominal per bank mendekati contoh owner (selisih pembulatan ≤ Rp3) dan totalnya TEPAT Total THP", () => {
+  it("nominal per bank mendekati contoh owner (selisih pembulatan â‰¤ Rp3) dan totalnya TEPAT Total THP", () => {
     const [bsi, btn, bri] = hasil.bank.map((b) => b.nominal);
     expect(Math.abs(bsi - 1_623_779)).toBeLessThanOrEqual(3);
     expect(Math.abs(btn - 342_618)).toBeLessThanOrEqual(3);
@@ -72,14 +72,14 @@ describe("hitungPembayaranBank", () => {
     expect(r.divisi.map((d) => d.persen)).toEqual([0.25, 0, 0.75]);
     expect(r.bank).toEqual([
       { bank: "BTN", persen: 0.25, nominal: 25_000 },
-      { bank: "BRI", persen: 0.75, nominal: 75_000 },
+      { bank: "Mandiri", persen: 0.75, nominal: 75_000 },
     ]);
   });
 
   it("laba bersih negatif diperlakukan sebagai 0", () => {
     const r = hitungPembayaranBank([divisi("ChatBox", -500_000), divisi("CHTTN", 2_000_000)], 10_000);
     expect(r.divisi[0].persen).toBe(0);
-    expect(r.bank).toEqual([{ bank: "BRI", persen: 1, nominal: 10_000 }]);
+    expect(r.bank).toEqual([{ bank: "Mandiri", persen: 1, nominal: 10_000 }]);
   });
 
   it("pembulatan sisa dibagi supaya total tetap sama (3 bank sepertiga)", () => {
