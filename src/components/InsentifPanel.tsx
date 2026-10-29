@@ -49,10 +49,14 @@ function KartuDivisi({
   group,
   sedangCetak,
   onCetak,
+  terbuka,
+  onToggle,
 }: {
   group: InsentifGroup;
   sedangCetak: boolean;
   onCetak: () => void;
+  terbuka: boolean;
+  onToggle: () => void;
 }) {
   const total = totalGroup(group);
   return (
@@ -61,21 +65,34 @@ function KartuDivisi({
         <p className="font-display font-semibold">Chatatan Group</p>
         <p className="text-xs">Slip Insentif &amp; Bonus · dicetak {new Date().toLocaleDateString("id-ID")}</p>
       </div>
-      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={terbuka}
+        className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 text-left"
+      >
         <div className="min-w-0">
           {group.sumber === "CBCST" && <div className="text-xs font-medium tracking-wide text-slate-500">CBCST</div>}
           {/* Sengaja tidak di-truncate: "ChatShoeTreatment Cempaka" dan "...Pinus" jadi tak terbedakan kalau dipotong. */}
           <h3 className="font-display font-semibold text-slate-100">{group.divisi}</h3>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            onClick={onCetak}
-            className="print:hidden rounded-lg border border-[#1f2023] px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
-          >
-            Print
-          </button>
+        <div className="flex shrink-0 items-center gap-3">
           <BadgeTarget tercapai={group.targetTercapai} />
+          <span className="text-xs text-slate-500">{total.jumlahPegawai} orang</span>
+          <span className="tabular font-display text-sm"><Rupiah nilai={total.total} tebal /></span>
+          <span className={`print:hidden text-slate-500 transition ${terbuka ? "rotate-90" : ""}`} aria-hidden>▸</span>
         </div>
+      </button>
+
+      {/* Detail disembunyikan saat kartu tertutup, tapi tetap ikut tercetak (print:block). */}
+      <div className={terbuka ? "" : "hidden print:block"}>
+      <div className="mt-3 flex justify-end print:hidden">
+        <button
+          onClick={onCetak}
+          className="rounded-lg border border-[#1f2023] px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
+        >
+          Print
+        </button>
       </div>
       {group.keterangan && <p className="mt-1 text-sm text-slate-400">{group.keterangan}</p>}
       {group.catatan && (
@@ -173,6 +190,7 @@ function KartuDivisi({
           </p>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -220,6 +238,16 @@ export default function InsentifPanel() {
   const pesanError = error[bulan];
   const total = hasil ? totalSemua(hasil.groups) : null;
   const { cetakId, setCetakId } = useCetakKartu();
+  const [terbuka, setTerbuka] = useState<Set<string>>(() => new Set());
+  const idGroup = (g: InsentifGroup) => `${g.sumber}/${g.divisi}`;
+  const semuaTerbuka = !!hasil && hasil.groups.length > 0 && hasil.groups.every((g) => terbuka.has(idGroup(g)));
+  const toggle = (id: string) =>
+    setTerbuka((s) => {
+      const baru = new Set(s);
+      if (baru.has(id)) baru.delete(id);
+      else baru.add(id);
+      return baru;
+    });
 
   return (
     <div className="space-y-4">
@@ -237,6 +265,15 @@ export default function InsentifPanel() {
             {bulan === bulanSekarang ? " · masih berjalan, angka sampai hari ini" : " · satu bulan penuh"}
           </p>
         </div>
+        <div className="flex shrink-0 items-center gap-2">
+        {hasil && hasil.groups.length > 0 && (
+          <button
+            onClick={() => setTerbuka(semuaTerbuka ? new Set() : new Set(hasil.groups.map(idGroup)))}
+            className="rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
+          >
+            {semuaTerbuka ? "Tutup semua" : "Buka semua"}
+          </button>
+        )}
         <button
           onClick={() => muat(bulan)}
           disabled={sedangMuat}
@@ -244,6 +281,7 @@ export default function InsentifPanel() {
         >
           {sedangMuat ? "Memuat..." : "Refresh"}
         </button>
+        </div>
       </div>
 
       {pesanError && <p className="text-rose-400">{pesanError}</p>}
@@ -275,13 +313,15 @@ export default function InsentifPanel() {
           {hasil.groups.length > 0 ? (
             <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
               {hasil.groups.map((g) => {
-                const id = `${g.sumber}/${g.divisi}`;
+                const id = idGroup(g);
                 return (
                   <KartuDivisi
                     key={id}
                     group={g}
                     sedangCetak={cetakId !== null && cetakId !== id}
                     onCetak={() => setCetakId(id)}
+                    terbuka={terbuka.has(id)}
+                    onToggle={() => toggle(id)}
                   />
                 );
               })}

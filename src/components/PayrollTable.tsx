@@ -27,10 +27,14 @@ function KartuPayroll({
   entri,
   sedangCetak,
   onCetak,
+  terbuka,
+  onToggle,
 }: {
   entri: PayrollEntri;
   sedangCetak: boolean;
   onCetak: () => void;
+  terbuka: boolean;
+  onToggle: () => void;
 }) {
   // rincianDivisi datang dari n8n sebagai satu blok teks -- diparse jadi
   // baris per divisi di sini. "laba gabungan" dan "pajak CV 10%" SENGAJA
@@ -46,20 +50,34 @@ function KartuPayroll({
         <p className="font-display font-semibold">Chatatan Group</p>
         <p className="text-xs">Slip Penerimaan Payroll · dicetak {new Date().toLocaleDateString("id-ID")}</p>
       </div>
-      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={terbuka}
+        className="flex w-full items-center justify-between gap-3 text-left"
+      >
         <div className="min-w-0">
           <div className="text-xs font-medium tracking-wide text-slate-500">{entri.bulan}</div>
           <h3 className="font-display font-semibold text-slate-100">{entri.nama}</h3>
         </div>
+        <div className="flex shrink-0 items-center gap-3">
+          <span className="tabular font-display text-sm"><Rupiah nilai={entri.totalThp} tebal /></span>
+          <span className={`print:hidden text-slate-500 transition ${terbuka ? "rotate-90" : ""}`} aria-hidden>▸</span>
+        </div>
+      </button>
+
+      {/* Detail disembunyikan saat kartu tertutup, tapi tetap ikut tercetak (print:block). */}
+      <div className={terbuka ? "" : "hidden print:block"}>
+      <div className="mt-3 flex justify-end print:hidden">
         <button
           onClick={onCetak}
-          className="print:hidden shrink-0 rounded-lg border border-[#1f2023] px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
+          className="shrink-0 rounded-lg border border-[#1f2023] px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
         >
           Print
         </button>
       </div>
 
-      <dl className="mt-4 grid grid-cols-3 gap-3">
+      <dl className="mt-3 grid grid-cols-3 gap-3">
         <div>
           <dt className="text-xs text-slate-500">Insentif</dt>
           <dd className="tabular font-display mt-1 text-sm"><Rupiah nilai={entri.totalInsentif} /></dd>
@@ -152,6 +170,7 @@ function KartuPayroll({
           </table>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -159,6 +178,7 @@ function KartuPayroll({
 export default function PayrollTable({ payroll }: { payroll: PayrollEntri[] }) {
   const [bulanFilter, setBulanFilter] = useState<string>("Semua");
   const { cetakId, setCetakId } = useCetakKartu();
+  const [terbuka, setTerbuka] = useState<Set<string>>(() => new Set());
 
   if (payroll.length === 0) {
     return (
@@ -172,11 +192,27 @@ export default function PayrollTable({ payroll }: { payroll: PayrollEntri[] }) {
   // first encountered here is the order they should appear in the dropdown.
   const bulanOptions = ["Semua", ...Array.from(new Set(payroll.map((p) => p.bulan)))];
   const filtered = bulanFilter === "Semua" ? payroll : payroll.filter((p) => p.bulan === bulanFilter);
+  const idKartu = (p: PayrollEntri, i: number) => `${p.bulan}-${p.nama}-${i}`;
+  const semuaTerbuka = filtered.length > 0 && filtered.every((p, i) => terbuka.has(idKartu(p, i)));
+  const toggle = (id: string) =>
+    setTerbuka((s) => {
+      const baru = new Set(s);
+      if (baru.has(id)) baru.delete(id);
+      else baru.add(id);
+      return baru;
+    });
 
   return (
     <div className="space-y-4">
       <div className="print:hidden flex flex-wrap items-center justify-between gap-3">
         <h3 className="font-display font-semibold text-slate-100">Payroll</h3>
+        <div className="flex items-center gap-2">
+        <button
+          onClick={() => setTerbuka(semuaTerbuka ? new Set() : new Set(filtered.map(idKartu)))}
+          className="rounded-xl border border-[#1f2023] px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
+        >
+          {semuaTerbuka ? "Tutup semua" : "Buka semua"}
+        </button>
         <select
           value={bulanFilter}
           onChange={(e) => setBulanFilter(e.target.value)}
@@ -186,6 +222,7 @@ export default function PayrollTable({ payroll }: { payroll: PayrollEntri[] }) {
             <option key={b} value={b}>{b}</option>
           ))}
         </select>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
@@ -193,13 +230,15 @@ export default function PayrollTable({ payroll }: { payroll: PayrollEntri[] }) {
       ) : (
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
           {filtered.map((p, i) => {
-            const id = `${p.bulan}-${p.nama}-${i}`;
+            const id = idKartu(p, i);
             return (
               <KartuPayroll
                 key={id}
                 entri={p}
                 sedangCetak={cetakId !== null && cetakId !== id}
                 onCetak={() => setCetakId(id)}
+                terbuka={terbuka.has(id)}
+                onToggle={() => toggle(id)}
               />
             );
           })}
