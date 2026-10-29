@@ -10,6 +10,7 @@ import PayrollTable from "@/components/PayrollTable";
 import InsentifPanel from "@/components/InsentifPanel";
 import type { SnapshotTerbaru, RiwayatEntri, PayrollEntri, PeriodeOption, Divisi } from "@/lib/transform";
 import { getPeriodeOptions, buildSnapshotForPeriode } from "@/lib/transform";
+import { formatTanggalIso } from "@/lib/tanggal";
 
 type LaporanResponse = {
   snapshotTerbaru: SnapshotTerbaru | null;
@@ -125,7 +126,7 @@ export default function DashboardPage() {
         )}
         {snapshotDitampilkan && (
           <p className="mt-1 text-sm text-slate-400">
-            {snapshotDitampilkan.jenisLaporan} · {snapshotDitampilkan.rentangDari} s.d. {snapshotDitampilkan.rentangSampai} · dibuat {snapshotDitampilkan.tanggalGenerate}
+            {snapshotDitampilkan.jenisLaporan} · {formatTanggalIso(snapshotDitampilkan.rentangDari)} s.d. {formatTanggalIso(snapshotDitampilkan.rentangSampai)} · dibuat {formatTanggalIso(snapshotDitampilkan.tanggalGenerate)}
           </p>
         )}
       </header>
@@ -193,7 +194,7 @@ export default function DashboardPage() {
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-slate-400">
-              {live ? `Bulan berjalan · ${live.awal} s.d. ${live.akhir}` : "Bulan berjalan"} — ditarik langsung dari 3 aplikasi, tanpa narasi AI.
+              {live ? `Bulan berjalan · ${formatTanggalIso(live.awal)} s.d. ${formatTanggalIso(live.akhir)}` : "Bulan berjalan"} — ditarik langsung dari 3 aplikasi, tanpa narasi AI.
             </p>
             <button
               onClick={muatLive}

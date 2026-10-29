@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { RiwayatEntri } from "@/lib/transform";
 import { formatRupiah } from "@/lib/rupiah";
+import { formatTanggalIso } from "@/lib/tanggal";
 
 const JENIS_OPTIONS = ["Semua", "Bulanan", "Dekade1", "Dekade2"] as const;
 
@@ -39,7 +40,7 @@ export default function RiwayatTable({ riwayat }: { riwayat: RiwayatEntri[] }) {
           <tbody>
             {filtered.map((r, i) => (
               <tr key={i} className="border-b border-[#1f2023]/60 transition hover:bg-white/[0.02]">
-                <td className="tabular py-2 pr-4 text-slate-500">{r.tanggalGenerate}</td>
+                <td className="tabular py-2 pr-4 text-slate-500">{formatTanggalIso(r.tanggalGenerate)}</td>
                 <td className="py-2 pr-4 text-slate-400">{r.jenisLaporan}</td>
                 <td className="py-2 pr-4 font-medium text-slate-100">{r.nama}</td>
                 <td className="tabular py-2 pr-4 text-slate-300">Rp {formatRupiah(r.omzet)}</td>

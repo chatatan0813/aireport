@@ -1,4 +1,5 @@
 import type { SheetRow } from "./server/sheets";
+import { formatTanggalIso } from "./tanggal";
 
 export type Divisi = {
   nama: string;
@@ -164,7 +165,7 @@ export function getPeriodeOptions(riwayat: RiwayatEntri[]): PeriodeOption[] {
       jenisLaporan: r.jenisLaporan,
       rentangDari: r.rentangDari,
       rentangSampai: r.rentangSampai,
-      label: `${r.jenisLaporan} (${r.rentangDari} s.d. ${r.rentangSampai})`,
+      label: `${r.jenisLaporan} (${formatTanggalIso(r.rentangDari)} s.d. ${formatTanggalIso(r.rentangSampai)})`,
     });
   }
   return options;

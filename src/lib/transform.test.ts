@@ -234,8 +234,8 @@ describe("getPeriodeOptions", () => {
     // for another; getPeriodeOptions must follow riwayat's own order, not
     // re-derive its own.
     expect(options).toEqual([
-      { jenisLaporan: "Bulanan", rentangDari: "2026-08-01", rentangSampai: "2026-08-31", label: "Bulanan (2026-08-01 s.d. 2026-08-31)" },
-      { jenisLaporan: "Dekade2", rentangDari: "2026-09-01", rentangSampai: "2026-09-20", label: "Dekade2 (2026-09-01 s.d. 2026-09-20)" },
+      { jenisLaporan: "Bulanan", rentangDari: "2026-08-01", rentangSampai: "2026-08-31", label: "Bulanan (01-08-2026 s.d. 31-08-2026)" },
+      { jenisLaporan: "Dekade2", rentangDari: "2026-09-01", rentangSampai: "2026-09-20", label: "Dekade2 (01-09-2026 s.d. 20-09-2026)" },
     ]);
   });
 });
