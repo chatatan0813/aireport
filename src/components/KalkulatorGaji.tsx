@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Divisi } from "@/lib/transform";
+import { bulanIni } from "@/lib/insentif";
 import type { Bank } from "@/lib/payroll-bank";
 import { formatRupiah } from "@/lib/rupiah";
 import { formatTanggal, formatTanggalIso } from "@/lib/tanggal";
@@ -15,19 +17,53 @@ function Rupiah({ nilai, tebal = false }: { nilai: number; tebal?: boolean }) {
   return <span className={`whitespace-nowrap ${warna}`}>Rp {formatRupiah(nilai)}</span>;
 }
 
-export default function KalkulatorGaji({
-  live,
-  liveLoading,
-  liveError,
-  onRefresh,
-}: {
-  live: { divisi: Divisi[]; gagal: string[]; awal: string; akhir: string } | null;
-  liveLoading: boolean;
-  liveError: string | null;
-  onRefresh: () => void;
-}) {
+type DataLaba = { divisi: Divisi[]; gagal: string[]; awal: string; akhir: string };
+
+// Disimpan di luar komponen supaya pindah tab lalu balik tidak menarik ulang data.
+const cache: Partial<Record<string, DataLaba>> = {};
+
+export default function KalkulatorGaji() {
+  const router = useRouter();
+  const bulanSekarang = bulanIni();
+  // Default bulan berjalan (dasar utama); bulan lalu bisa dipilih kalau sudah lewat bulan.
+  const [bulan, setBulan] = useState(bulanSekarang);
+  const [dataPerBulan, setDataPerBulan] = useState<Partial<Record<string, DataLaba>>>(() => ({ ...cache }));
+  const [loading, setLoading] = useState(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
   // Hanya kalkulator: isian tidak disimpan ke mana pun, hilang saat refresh halaman.
   const [sisa, setSisa] = useState<Record<string, number>>({});
+
+  const muat = useCallback(
+    (b: string) => {
+      setLoading(true);
+      setLiveError(null);
+      fetch(`/api/live?bulan=${b}`)
+        .then((res) => {
+          if (res.status === 401) {
+            router.push("/login");
+            return null;
+          }
+          if (!res.ok) throw new Error("gagal");
+          return res.json() as Promise<DataLaba>;
+        })
+        .then((json) => {
+          if (!json) return;
+          cache[b] = json;
+          setDataPerBulan((d) => ({ ...d, [b]: json }));
+        })
+        .catch(() => setLiveError("Gagal memuat laba, hubungi admin"))
+        .finally(() => setLoading(false));
+    },
+    [router],
+  );
+
+  useEffect(() => {
+    if (!cache[bulan]) muat(bulan);
+  }, [bulan, muat]);
+
+  const live = dataPerBulan[bulan] ?? null;
+  const liveLoading = loading;
+  const onRefresh = () => muat(bulan);
 
   const baris = PENERIMA_GAJI.map((p) => {
     const nominal = sisa[p.nama] ?? 0;
@@ -42,9 +78,19 @@ export default function KalkulatorGaji({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <p className="text-sm text-slate-400">
-          Dasar persentase: laba bulan berjalan{live ? ` · ${formatTanggalIso(live.awal)} s.d. ${formatTanggalIso(live.akhir)}` : ""}, hanya divisi yang dipegang tiap orang.
-        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            type="month"
+            value={bulan}
+            max={bulanSekarang}
+            onChange={(e) => e.target.value && setBulan(e.target.value)}
+            className="rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-200 [color-scheme:dark] focus:border-lime-400/40 focus:outline-none"
+          />
+          <p className="text-sm text-slate-400">
+            Dasar persentase: laba {bulan === bulanSekarang ? "bulan berjalan" : "satu bulan penuh"}
+            {live ? ` · ${formatTanggalIso(live.awal)} s.d. ${formatTanggalIso(live.akhir)}` : ""}, hanya divisi yang dipegang tiap orang.
+          </p>
+        </div>
         <div className="flex shrink-0 gap-2">
           <button
             onClick={() => window.print()}

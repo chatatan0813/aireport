@@ -69,7 +69,7 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if ((tab === "Live" || tab === "Kalkulator Gaji") && !live && !liveLoading) muatLive();
+    if (tab === "Live" && !live && !liveLoading) muatLive();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -239,7 +239,7 @@ export default function DashboardPage() {
       {tab === "Payroll" && <PayrollTable payroll={data.payroll} />}
       {tab === "Insentif" && <InsentifPanel />}
       {tab === "Kalkulator Gaji" && (
-        <KalkulatorGaji live={live} liveLoading={liveLoading} liveError={liveError} onRefresh={muatLive} />
+        <KalkulatorGaji />
       )}
       </motion.div>
       </AnimatePresence>

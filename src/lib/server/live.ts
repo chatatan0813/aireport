@@ -28,6 +28,21 @@ export function rentangBulanBerjalan(): { awal: string; akhir: string } {
   return { awal: `${y}-${pad(m)}-01`, akhir: `${y}-${pad(m)}-${pad(d)}` };
 }
 
+/**
+ * Rentang satu bulan `bulan` (YYYY-MM): tgl 1 s.d. akhir bulan, atau s.d. hari
+ * ini kalau itu bulan berjalan. null kalau format salah atau bulan di masa depan.
+ */
+export function rentangBulan(bulan: string): { awal: string; akhir: string } | null {
+  const m = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(bulan);
+  if (!m) return null;
+  const berjalan = rentangBulanBerjalan();
+  const bulanBerjalan = berjalan.awal.slice(0, 7);
+  if (bulan > bulanBerjalan) return null;
+  if (bulan === bulanBerjalan) return berjalan;
+  const hariTerakhir = new Date(Date.UTC(Number(m[1]), Number(m[2]), 0)).getUTCDate();
+  return { awal: `${bulan}-01`, akhir: `${bulan}-${String(hariTerakhir).padStart(2, "0")}` };
+}
+
 export function satuanDanCapaian(name: string, d: RawDivision): { satuan: string; capaian: number } {
   if (name.startsWith("ChatBarber")) return { satuan: "kepala", capaian: Number(d.jumlahTransaksi) || 0 };
   if (name.startsWith("ChatShoeTreatment")) return { satuan: "pekerjaan", capaian: Number(d.jumlahTransaksi) || 0 };
@@ -53,11 +68,13 @@ export function statusDivisi(name: string, d: RawDivision): string {
   return statusDari(capaian, Number(d.target) || 0);
 }
 
-export async function fetchLiveDivisi(): Promise<{ divisi: Divisi[]; gagal: string[] }> {
+export async function fetchLiveDivisi(
+  rentang: { awal: string; akhir: string } = rentangBulanBerjalan()
+): Promise<{ divisi: Divisi[]; gagal: string[] }> {
   const token = process.env.AIREPORT_LIVE_TOKEN;
   if (!token) throw new Error("AIREPORT_LIVE_TOKEN is not set");
 
-  const { awal, akhir } = rentangBulanBerjalan();
+  const { awal, akhir } = rentang;
   const gagal: string[] = [];
 
   const hasil = await Promise.all(
