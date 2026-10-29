@@ -7,6 +7,7 @@ import { formatRupiah } from "@/lib/rupiah";
 import { bulanIni, labelBulan, totalGroup, totalSemua } from "@/lib/insentif";
 import type { InsentifGroup, InsentifResponse } from "@/lib/insentif";
 import { useCetakKartu } from "@/lib/use-cetak-kartu";
+import { formatTanggal } from "@/lib/tanggal";
 
 // Disimpan di luar komponen supaya pindah tab lalu balik ke "Insentif" tidak
 // menarik ulang ketiga aplikasi -- panel ini di-unmount tiap ganti tab. Data
@@ -63,7 +64,7 @@ function KartuDivisi({
     <div className={`kartu-cetak rounded-3xl border border-[#1f2023] bg-[#111214] p-5 ${sedangCetak ? "print:hidden" : ""}`}>
       <div className="mb-3 hidden border-b border-black pb-2 print:block">
         <p className="font-display font-semibold">Chatatan Group</p>
-        <p className="text-xs">Slip Insentif &amp; Bonus · dicetak {new Date().toLocaleDateString("id-ID")}</p>
+        <p className="text-xs">Slip Insentif &amp; Bonus · dicetak {formatTanggal(new Date())}</p>
       </div>
       <button
         type="button"

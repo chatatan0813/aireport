@@ -6,6 +6,7 @@ import { formatRupiah } from "@/lib/rupiah";
 import { parseRincianPayroll } from "@/lib/payroll-rincian";
 import { hitungPembayaranBank } from "@/lib/payroll-bank";
 import { useCetakKartu } from "@/lib/use-cetak-kartu";
+import { formatTanggal } from "@/lib/tanggal";
 
 function Rupiah({ nilai, tebal = false }: { nilai: number; tebal?: boolean }) {
   if (nilai === 0) return <span className="text-slate-600">—</span>;
@@ -48,7 +49,7 @@ function KartuPayroll({
     <div className={`kartu-cetak rounded-3xl border border-[#1f2023] bg-[#111214] p-5 ${sedangCetak ? "print:hidden" : ""}`}>
       <div className="mb-3 hidden border-b border-black pb-2 print:block">
         <p className="font-display font-semibold">Chatatan Group</p>
-        <p className="text-xs">Slip Penerimaan Payroll · dicetak {new Date().toLocaleDateString("id-ID")}</p>
+        <p className="text-xs">Slip Penerimaan Payroll · dicetak {formatTanggal(new Date())}</p>
       </div>
       <button
         type="button"
