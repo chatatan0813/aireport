@@ -51,7 +51,9 @@ export function reviewBulanIni(
   const totalAwal = Number(awal?.total_review);
   if (!awal || !Number.isFinite(totalAwal)) return { reviewBulanIni: null, sejak: null };
   return {
-    reviewBulanIni: totalSekarang - totalAwal,
+    // Total "sekarang" bisa dari cache Places 1 jam yang lebih lama dari snapshot,
+    // jadi selisih kecil bisa minus — tampilkan 0, bukan angka minus.
+    reviewBulanIni: Math.max(0, totalSekarang - totalAwal),
     sejak: awal.tanggal === `${bulan}-01` ? null : String(awal.tanggal),
   };
 }
