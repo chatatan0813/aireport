@@ -27,8 +27,9 @@ type LiveResponse = {
   akhir: string;
 };
 
-const TABS = ["Live", "Ringkasan", "Riwayat", "Payroll", "Insentif", "Kalkulator Gaji"] as const;
-type Tab = (typeof TABS)[number];
+const TABS = ["Live", "Ringkasan", "Payroll", "Insentif", "Kalkulator Gaji"] as const;
+// Riwayat jarang dibuka, jadi tidak ikut baris tab — dibuka dari tombol di samping Keluar.
+type Tab = (typeof TABS)[number] | "Riwayat";
 
 const GRID_VARIANTS = {
   hidden: {},
@@ -113,12 +114,24 @@ export default function DashboardPage() {
       <header className="mb-6 print:hidden">
         <div className="flex items-start justify-between gap-4">
           <h1 className="font-display text-2xl font-semibold text-slate-100">AI Reporting — Chatatan Group</h1>
+          <div className="flex shrink-0 gap-2">
+          <button
+            onClick={() => setTab("Riwayat")}
+            className={`rounded-xl border px-3 py-1.5 text-sm font-medium transition ${
+              tab === "Riwayat"
+                ? "border-lime-400/40 bg-lime-400/10 text-lime-300"
+                : "border-[#1f2023] bg-[#111214] text-slate-300 hover:border-lime-400/30 hover:text-lime-300"
+            }`}
+          >
+            Riwayat
+          </button>
           <button
             onClick={handleLogout}
             className="shrink-0 rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300"
           >
             Keluar
           </button>
+          </div>
         </div>
         {data.stale && (
           <div className="mt-2 rounded-lg bg-amber-950/40 px-4 py-2 text-sm text-amber-400 ring-1 ring-amber-900">
