@@ -1,18 +1,22 @@
 // Place ID diambil dari tabel clients di rev.chatatangroup.com (Chatatan Review),
 // yang sudah menyimpan Place ID tiap usaha untuk link tulis-review.
 // Tambah usaha baru = tambah satu baris di sini.
-export const BISNIS_GOOGLE: { nama: string; placeId: string }[] = [
-  { nama: "ChatBarber Cempaka", placeId: "ChIJ4cB_39oj5C0RUjpIVILr6gE" },
-  { nama: "ChatBarber Pinus", placeId: "ChIJY0g1uXQj5C0RJv9kfgkJ_HA" },
-  { nama: "ChatShoeTreatment Cempaka", placeId: "ChIJgdD2INsj5C0Rr0E7Okkb22Q" },
-  { nama: "CHTTN", placeId: "ChIJgTlV5zIj5C0RMrw2CKRarjE" },
-  { nama: "ChatBox", placeId: "ChIJadr0kd4j5C0R3ZsHNJIT5wY" },
-  { nama: "Kopi Sabrina", placeId: "ChIJSUjwIUUj5C0RI8R4Vz5dEao" },
-  { nama: "Aksel Cafe", placeId: "ChIJO7csLgAj5C0RBlV-ovp9mPM" },
+export const GRUP_USAHA = ["Chatatan Group", "Alabica Group"] as const;
+export type GrupUsaha = (typeof GRUP_USAHA)[number];
+
+export const BISNIS_GOOGLE: { nama: string; grup: GrupUsaha; placeId: string }[] = [
+  { nama: "ChatBarber Cempaka", grup: "Chatatan Group", placeId: "ChIJ4cB_39oj5C0RUjpIVILr6gE" },
+  { nama: "ChatBarber Pinus", grup: "Chatatan Group", placeId: "ChIJY0g1uXQj5C0RJv9kfgkJ_HA" },
+  { nama: "ChatShoeTreatment Cempaka", grup: "Chatatan Group", placeId: "ChIJgdD2INsj5C0Rr0E7Okkb22Q" },
+  { nama: "CHTTN", grup: "Chatatan Group", placeId: "ChIJgTlV5zIj5C0RMrw2CKRarjE" },
+  { nama: "ChatBox", grup: "Chatatan Group", placeId: "ChIJadr0kd4j5C0R3ZsHNJIT5wY" },
+  { nama: "Kopi Sabrina", grup: "Alabica Group", placeId: "ChIJSUjwIUUj5C0RI8R4Vz5dEao" },
+  { nama: "Aksel Cafe", grup: "Alabica Group", placeId: "ChIJO7csLgAj5C0RBlV-ovp9mPM" },
 ];
 
 export type RatingBisnis = {
   nama: string;
+  grup: GrupUsaha;
   rating: number | null;
   totalReview: number;
   urlMaps: string | null;
@@ -52,6 +56,7 @@ export async function fetchGoogleRating(opsi: { fetchImpl?: typeof fetch } = {})
         const json = (await res.json()) as PlaceResponse;
         return {
           nama: b.nama,
+          grup: b.grup,
           rating: typeof json.rating === "number" ? json.rating : null,
           totalReview: typeof json.userRatingCount === "number" ? json.userRatingCount : 0,
           urlMaps: typeof json.googleMapsUri === "string" ? json.googleMapsUri : null,

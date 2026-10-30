@@ -39,6 +39,8 @@ describe("fetchGoogleRating", () => {
     expect(hasil.kunciBelumDiisi).toBe(false);
     expect(hasil.gagal).toEqual([]);
     expect(hasil.bisnis[0]).toMatchObject({ rating: 4.8, totalReview: 120, urlMaps: "https://maps.google.com/?cid=1" });
+    expect(hasil.bisnis.find((b) => b.nama === "Kopi Sabrina")?.grup).toBe("Alabica Group");
+    expect(hasil.bisnis.find((b) => b.nama === "CHTTN")?.grup).toBe("Chatatan Group");
   });
 
   it("marks a business as failed without dropping the others", async () => {
