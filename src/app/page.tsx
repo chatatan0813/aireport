@@ -9,6 +9,7 @@ import RiwayatTable from "@/components/RiwayatTable";
 import PayrollTable from "@/components/PayrollTable";
 import InsentifPanel from "@/components/InsentifPanel";
 import KalkulatorGaji from "@/components/KalkulatorGaji";
+import GoogleRatingPanel from "@/components/GoogleRatingPanel";
 import type { SnapshotTerbaru, RiwayatEntri, PayrollEntri, PeriodeOption, Divisi } from "@/lib/transform";
 import { getPeriodeOptions, buildSnapshotForPeriode } from "@/lib/transform";
 import { formatTanggalIso } from "@/lib/tanggal";
@@ -27,7 +28,7 @@ type LiveResponse = {
   akhir: string;
 };
 
-const TABS = ["Live", "Ringkasan", "Payroll", "Insentif", "Kalkulator Gaji"] as const;
+const TABS = ["Live", "Ringkasan", "Payroll", "Insentif", "Kalkulator Gaji", "Google Rating"] as const;
 // Riwayat jarang dibuka, jadi tidak ikut baris tab — dibuka dari tombol di samping Keluar.
 type Tab = (typeof TABS)[number] | "Riwayat";
 
@@ -254,6 +255,7 @@ export default function DashboardPage() {
       {tab === "Kalkulator Gaji" && (
         <KalkulatorGaji />
       )}
+      {tab === "Google Rating" && <GoogleRatingPanel />}
       </motion.div>
       </AnimatePresence>
     </div>
