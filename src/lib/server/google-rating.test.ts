@@ -64,6 +64,38 @@ describe("fetchGoogleRating", () => {
     expect(hasil.bisnis[0]).toMatchObject({ rating: null, totalReview: 0 });
   });
 
+  it("adds this month's new reviews from the Rating Google snapshots", async () => {
+    const { impl } = fetchPalsu((id) =>
+      Response.json({ rating: 4.6, userRatingCount: id === BISNIS_GOOGLE[0].placeId ? 660 : 41 }),
+    );
+    const snapshot = [
+      { tanggal: "2026-10-01", usaha: BISNIS_GOOGLE[0].nama, total_review: "600" },
+      { tanggal: "2026-11-01", usaha: BISNIS_GOOGLE[0].nama, total_review: "650" },
+      { tanggal: "2026-11-02", usaha: BISNIS_GOOGLE[0].nama, total_review: "652" },
+      { tanggal: "2026-11-15", usaha: BISNIS_GOOGLE[1].nama, total_review: "38" },
+    ];
+
+    const hasil = await fetchGoogleRating({ fetchImpl: impl, ambilSnapshot: async () => snapshot, bulan: "2026-11" });
+
+    expect(hasil.bisnis[0]).toMatchObject({ reviewBulanIni: 10, sejak: null });
+    expect(hasil.bisnis[1]).toMatchObject({ reviewBulanIni: 3, sejak: "2026-11-15" });
+    expect(hasil.bisnis[2]).toMatchObject({ reviewBulanIni: null, sejak: null });
+  });
+
+  it("still returns ratings when the snapshot sheet cannot be read", async () => {
+    const { impl } = fetchPalsu(() => Response.json({ rating: 5, userRatingCount: 3 }));
+
+    const hasil = await fetchGoogleRating({
+      fetchImpl: impl,
+      ambilSnapshot: async () => {
+        throw new Error("sheet down");
+      },
+    });
+
+    expect(hasil.gagal).toEqual([]);
+    expect(hasil.bisnis[0]).toMatchObject({ rating: 5, reviewBulanIni: null });
+  });
+
   it("does not call Google at all when the API key is missing", async () => {
     delete process.env.GOOGLE_PLACES_API_KEY;
     const { impl, panggilan } = fetchPalsu(() => Response.json({}));

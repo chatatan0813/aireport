@@ -80,3 +80,8 @@ export async function getAiReportingRows(opts?: { forceRefresh?: boolean }): Pro
 export async function getPayrollRows(opts?: { forceRefresh?: boolean }): Promise<SheetReadResult> {
   return readCached("payroll", "Payroll!A:G", opts?.forceRefresh);
 }
+
+// Snapshot harian rating Google, ditulis workflow n8n "Rating Google – Catat & Laporan" tiap 00:05 WITA.
+export async function getRatingGoogleRows(opts?: { forceRefresh?: boolean }): Promise<SheetReadResult> {
+  return readCached("rating-google", "Rating Google!A:F", opts?.forceRefresh);
+}

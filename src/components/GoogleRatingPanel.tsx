@@ -150,6 +150,12 @@ function KartuGrup({ bisnis }: { bisnis: RatingBisnis[] }) {
             )}
           </div>
           <p className="mt-2 text-sm text-slate-400">{b.totalReview.toLocaleString("id-ID")} review</p>
+          {b.reviewBulanIni !== null && (
+            <p className="mt-1 text-sm text-slate-300">
+              Review bulan ini: <span className="font-semibold text-lime-300">+{b.reviewBulanIni.toLocaleString("id-ID")}</span>
+              {b.sejak && <span className="text-slate-500"> (sejak {b.sejak.slice(8, 10)}-{b.sejak.slice(5, 7)})</span>}
+            </p>
+          )}
           {b.urlMaps && (
             <a
               href={b.urlMaps}
