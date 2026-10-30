@@ -7,6 +7,8 @@ export const BISNIS_GOOGLE: { nama: string; placeId: string }[] = [
   { nama: "ChatShoeTreatment Cempaka", placeId: "ChIJgdD2INsj5C0Rr0E7Okkb22Q" },
   { nama: "CHTTN", placeId: "ChIJgTlV5zIj5C0RMrw2CKRarjE" },
   { nama: "ChatBox", placeId: "ChIJadr0kd4j5C0R3ZsHNJIT5wY" },
+  { nama: "Kopi Sabrina", placeId: "ChIJSUjwIUUj5C0RI8R4Vz5dEao" },
+  { nama: "Aksel Cafe", placeId: "ChIJO7csLgAj5C0RBlV-ovp9mPM" },
 ];
 
 export type RatingBisnis = {
