@@ -73,7 +73,7 @@ export default function GoogleRatingPanel() {
         <button
           onClick={muat}
           disabled={loading}
-          className="shrink-0 rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300 disabled:opacity-50"
+          className="shrink-0 rounded-xl border elev-control px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300 disabled:opacity-50"
         >
           {loading ? "Memuat..." : "Refresh"}
         </button>
@@ -125,7 +125,7 @@ export default function GoogleRatingPanel() {
 // Logo Chatatan Group putih (untuk latar gelap); logo Alabica = logo Sabrina
 // yang hitam, jadi diberi latar terang supaya terbaca.
 const GRUP: { nama: GrupUsaha; logo: string; latar: string }[] = [
-  { nama: "Chatatan Group", logo: "/logo/chatatan-group.png", latar: "bg-[#111214] ring-1 ring-[#1f2023]" },
+  { nama: "Chatatan Group", logo: "/logo/chatatan-group.png", latar: "elev-tile" },
   { nama: "Alabica Group", logo: "/logo/alabica-group.png", latar: "bg-slate-100" },
 ];
 
@@ -136,7 +136,7 @@ function KartuGrup({ bisnis }: { bisnis: RatingBisnis[] }) {
         <motion.div
           key={b.nama}
           variants={CARD_VARIANTS}
-          className="rounded-3xl border border-[#1f2023] bg-[#111214] p-5 transition-shadow hover:border-lime-400/20 hover:shadow-[0_0_24px_-8px_rgba(198,255,61,0.25)]"
+          className="rounded-3xl elev-card p-5"
         >
           <h3 className="font-display font-semibold text-slate-100">{b.nama}</h3>
           <div className="mt-3 flex items-end gap-3">

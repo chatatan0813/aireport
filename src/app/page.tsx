@@ -114,21 +114,21 @@ export default function DashboardPage() {
     <div className="min-h-screen p-6 md:p-10">
       <header className="mb-6 print:hidden">
         <div className="flex items-start justify-between gap-4">
-          <h1 className="font-display text-2xl font-semibold text-slate-100">AI Reporting — Chatatan Group</h1>
+          <h1 className="font-display judul-glow text-2xl font-semibold tracking-tight text-slate-50 md:text-3xl">AI Reporting <span className="text-lime-300">·</span> Chatatan Group</h1>
           <div className="flex shrink-0 gap-2">
           <button
             onClick={() => setTab("Riwayat")}
             className={`rounded-xl border px-3 py-1.5 text-sm font-medium transition ${
               tab === "Riwayat"
-                ? "border-lime-400/40 bg-lime-400/10 text-lime-300"
-                : "border-[#1f2023] bg-[#111214] text-slate-300 hover:border-lime-400/30 hover:text-lime-300"
+                ? "border-transparent tab-aktif"
+                : "elev-control text-slate-300 hover:border-lime-400/30 hover:text-lime-300"
             }`}
           >
             Riwayat
           </button>
           <button
             onClick={handleLogout}
-            className="shrink-0 rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300"
+            className="shrink-0 rounded-xl border elev-control px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300"
           >
             Keluar
           </button>
@@ -146,13 +146,13 @@ export default function DashboardPage() {
         )}
       </header>
 
-      <nav className="mb-6 flex flex-wrap gap-2 print:hidden">
+      <nav className="elev-control mb-6 inline-flex flex-wrap gap-1 rounded-full border p-1 print:hidden">
         {TABS.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`font-display relative rounded-full px-4 py-2 text-sm font-semibold transition ${
-              tab === t ? "bg-lime-400/10 text-lime-300 ring-1 ring-inset ring-lime-400/40" : "text-slate-400 hover:text-slate-200"
+              tab === t ? "tab-aktif" : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-100"
             }`}
           >
             {t}
@@ -169,7 +169,7 @@ export default function DashboardPage() {
             id="periode"
             value={periodeKey}
             onChange={(e) => setPeriodeKey(e.target.value)}
-            className="w-full rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-2 text-sm text-slate-100 focus:border-lime-400/40 focus:outline-none"
+            className="w-full rounded-xl border elev-control px-3 py-2 text-sm text-slate-100 focus:border-lime-400/40 focus:outline-none"
           >
             <option value="terbaru">Terbaru</option>
             {periodeOptions.map((p) => (
@@ -214,7 +214,7 @@ export default function DashboardPage() {
             <button
               onClick={muatLive}
               disabled={liveLoading}
-              className="shrink-0 rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300 disabled:opacity-50"
+              className="shrink-0 rounded-xl border elev-control px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300 disabled:opacity-50"
             >
               {liveLoading ? "Memuat..." : "Refresh"}
             </button>

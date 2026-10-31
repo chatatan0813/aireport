@@ -33,7 +33,7 @@ export default function OmzetChart({ divisi }: { divisi: Divisi[] }) {
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {kelompok.map(([satuan, list]) => (
-        <div key={satuan} className="rounded-3xl border border-[#1f2023] bg-[#111214] p-5">
+        <div key={satuan} className="rounded-3xl elev-card p-5">
           <h3 className="font-display mb-4 font-semibold text-slate-100">{SATUAN_LABEL[satuan] ?? `Capaian vs Target (${satuan})`}</h3>
           <div className="space-y-4">
             {list.map((d, i) => {
@@ -45,7 +45,7 @@ export default function OmzetChart({ divisi }: { divisi: Divisi[] }) {
                     <span className="truncate text-sm font-medium text-slate-200">{d.nama}</span>
                     <span className="tabular shrink-0 text-sm font-semibold text-slate-100">{persen.toFixed(0)}%</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-[#1c1d20]">
+                  <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
                     <motion.div
                       className="h-full rounded-full"
                       style={{ backgroundColor: warna }}

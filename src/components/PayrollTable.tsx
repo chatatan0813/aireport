@@ -46,7 +46,7 @@ function KartuPayroll({
   const persenTeks = (p: number) => `${Math.round(p * 100)}%`;
 
   return (
-    <div className={`kartu-cetak rounded-3xl border border-[#1f2023] bg-[#111214] p-5 ${sedangCetak ? "print:hidden" : ""}`}>
+    <div className={`kartu-cetak rounded-3xl elev-card p-5 ${sedangCetak ? "print:hidden" : ""}`}>
       <div className="mb-3 hidden border-b border-black pb-2 print:block">
         <p className="font-display font-semibold">Chatatan Group</p>
         <p className="text-xs">Slip Penerimaan Payroll · dicetak {formatTanggal(new Date())}</p>
@@ -72,7 +72,7 @@ function KartuPayroll({
       <div className="mt-3 flex justify-end print:hidden">
         <button
           onClick={onCetak}
-          className="shrink-0 rounded-lg border border-[#1f2023] px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
+          className="shrink-0 rounded-lg border border-white/[0.07] px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
         >
           Print
         </button>
@@ -94,11 +94,11 @@ function KartuPayroll({
       </dl>
 
       {rincian.length > 0 && (
-        <div className="mt-4 overflow-x-auto border-t border-[#1f2023] pt-3">
+        <div className="mt-4 overflow-x-auto border-t border-white/[0.07] pt-3">
           <p className="mb-2 text-xs font-medium text-slate-500">Rincian per divisi</p>
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#1f2023] text-slate-500">
+              <tr className="border-b border-white/[0.07] text-slate-500">
                 <th className="py-1.5 pr-3 font-medium">Divisi</th>
                 <th className="py-1.5 pr-3 font-medium">Status</th>
                 <th className="hidden py-1.5 pr-3 text-right font-medium sm:table-cell print:table-cell">Laba Bersih</th>
@@ -108,7 +108,7 @@ function KartuPayroll({
             </thead>
             <tbody>
               {rincian.map((r, i) => (
-                <tr key={`${r.divisi}-${i}`} className="border-b border-[#1f2023]/60">
+                <tr key={`${r.divisi}-${i}`} className="border-b border-white/[0.07]/60">
                   <td className="py-1.5 pr-3 text-slate-200">{r.divisi}</td>
                   <td className="py-1.5 pr-3"><BadgeStatus status={r.status} /></td>
                   <td className="tabular hidden whitespace-nowrap py-1.5 pr-3 text-right sm:table-cell print:table-cell">
@@ -130,13 +130,13 @@ function KartuPayroll({
       )}
 
       {pembayaran.bank.length > 0 && (
-        <div className="mt-4 overflow-x-auto border-t border-[#1f2023] pt-3">
+        <div className="mt-4 overflow-x-auto border-t border-white/[0.07] pt-3">
           <p className="mb-2 text-xs font-medium text-slate-500">
             Rincian pembayaran per bank <span className="text-slate-600">(proporsi laba bersih divisi)</span>
           </p>
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#1f2023] text-slate-500">
+              <tr className="border-b border-white/[0.07] text-slate-500">
                 <th className="py-1.5 pr-3 font-medium">Divisi</th>
                 <th className="py-1.5 pr-3 font-medium">Bank</th>
                 <th className="hidden py-1.5 pr-3 text-right font-medium sm:table-cell print:table-cell">Laba Bersih</th>
@@ -145,7 +145,7 @@ function KartuPayroll({
             </thead>
             <tbody>
               {pembayaran.divisi.map((d, i) => (
-                <tr key={`${d.divisi}-${i}`} className="border-b border-[#1f2023]/60">
+                <tr key={`${d.divisi}-${i}`} className="border-b border-white/[0.07]/60">
                   <td className="py-1.5 pr-3 text-slate-200">{d.divisi}</td>
                   <td className="py-1.5 pr-3 text-slate-300">{d.bank}</td>
                   <td className="tabular hidden whitespace-nowrap py-1.5 pr-3 text-right sm:table-cell print:table-cell">
@@ -161,7 +161,7 @@ function KartuPayroll({
           <table className="w-full text-left text-sm">
             <tbody>
               {pembayaran.bank.map((b) => (
-                <tr key={b.bank} className="border-b border-[#1f2023]/60">
+                <tr key={b.bank} className="border-b border-white/[0.07]/60">
                   <td className="py-1.5 pr-3 font-medium text-slate-200">{b.bank}</td>
                   <td className="tabular py-1.5 pr-3 text-right text-slate-300">{persenTeks(b.persen)}</td>
                   <td className="tabular py-1.5 text-right"><Rupiah nilai={b.nominal} tebal /></td>
@@ -183,7 +183,7 @@ export default function PayrollTable({ payroll }: { payroll: PayrollEntri[] }) {
 
   if (payroll.length === 0) {
     return (
-      <div className="rounded-3xl border border-[#1f2023] bg-[#111214] p-5 text-slate-500">
+      <div className="rounded-3xl elev-card p-5 text-slate-500">
         Belum ada payroll yang dihitung.
       </div>
     );
@@ -210,14 +210,14 @@ export default function PayrollTable({ payroll }: { payroll: PayrollEntri[] }) {
         <div className="flex items-center gap-2">
         <button
           onClick={() => setTerbuka(semuaTerbuka ? new Set() : new Set(filtered.map(idKartu)))}
-          className="rounded-xl border border-[#1f2023] px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
+          className="rounded-xl border border-white/[0.07] px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
         >
           {semuaTerbuka ? "Tutup semua" : "Buka semua"}
         </button>
         <select
           value={bulanFilter}
           onChange={(e) => setBulanFilter(e.target.value)}
-          className="rounded-xl border border-[#1f2023] bg-[#0a0a0c] px-2 py-1.5 text-sm text-slate-100 focus:border-lime-400/40 focus:outline-none"
+          className="rounded-xl border elev-inset px-2 py-1.5 text-sm text-slate-100 focus:border-lime-400/40 focus:outline-none"
         >
           {bulanOptions.map((b) => (
             <option key={b} value={b}>{b}</option>

@@ -49,13 +49,14 @@ export default function DivisiCard({ divisi, index = 0 }: { divisi: Divisi; inde
     <motion.div
       whileHover={{ y: -3 }}
       transition={{ duration: 0.2 }}
-      className="rounded-3xl border border-[#1f2023] bg-[#111214] p-5 shadow-[0_0_0_1px_rgba(0,0,0,0)] transition-shadow hover:border-lime-400/20 hover:shadow-[0_0_24px_-8px_rgba(198,255,61,0.25)]"
+      className="rounded-3xl elev-card p-5"
     >
       <div className="mb-2 flex items-center justify-between">
         <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass}`}>{divisi.status}</span>
       </div>
 
-      <div className="relative mx-auto h-[200px] w-[200px]">
+      {/* Glow lembut warna cincin di belakang grafik (tema Dark Mode Elevation). */}
+      <div className="relative mx-auto h-[200px] w-[200px]" style={{ filter: `drop-shadow(0 0 14px ${warna}66)` }}>
         <RadialBarChart
           width={200}
           height={200}
@@ -69,7 +70,7 @@ export default function DivisiCard({ divisi, index = 0 }: { divisi: Divisi; inde
           endAngle={-270}
         >
           <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-          <RadialBar background={{ fill: "#1c1d20" }} dataKey="value" cornerRadius={20} animationDuration={900} animationEasing="ease-out" />
+          <RadialBar background={{ fill: "rgba(255,255,255,0.06)" }} dataKey="value" cornerRadius={20} animationDuration={900} animationEasing="ease-out" />
         </RadialBarChart>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
           <div className="font-display text-sm font-semibold text-slate-200">{divisi.nama}</div>
@@ -108,7 +109,7 @@ export default function DivisiCard({ divisi, index = 0 }: { divisi: Divisi; inde
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           transition={{ duration: 0.25 }}
-          className="mt-3 space-y-2 overflow-hidden border-t border-[#1f2023] pt-3 text-sm text-slate-300"
+          className="mt-3 space-y-2 overflow-hidden border-t border-white/[0.07] pt-3 text-sm text-slate-300"
         >
           <p><span className="font-medium text-slate-100">Ringkasan:</span> {bagian.ringkasan || "—"}</p>
           <p><span className="font-medium text-slate-100">Evaluasi:</span> {bagian.evaluasi || "—"}</p>

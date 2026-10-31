@@ -1,21 +1,77 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
+/* Tema "Dark Mode Elevation": latar hampir hitam, permukaan bertingkat (makin tinggi
+   makin terang), sorot tipis di tepi atas, bayangan dalam, dan glow lime untuk fokus. */
 :root {
-  --background: #0a0a0c;
-  --foreground: #e7e9ee;
+  --background: #050507;
+  --foreground: #e9ebf0;
   --accent: #c6ff3d;
   --font-display: "Space Grotesk", ui-sans-serif, sans-serif;
+
+  --elev-0: #08090b; /* cekung: input */
+  --elev-1: #0f1013; /* kartu */
+  --elev-2: #15161a; /* kartu di dalam kartu, tombol */
+  --elev-line: rgba(255, 255, 255, 0.07);
+  --elev-line-strong: rgba(255, 255, 255, 0.12);
+  --elev-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --elev-drop: 0 1px 2px rgba(0, 0, 0, 0.6), 0 24px 48px -24px rgba(0, 0, 0, 0.95);
+  --glow-accent: 0 0 0 1px rgba(198, 255, 61, 0.12), 0 18px 50px -18px rgba(198, 255, 61, 0.35);
 }
 
 body {
   background:
-    radial-gradient(ellipse 900px 600px at 100% 0%, rgba(198, 255, 61, 0.08), transparent 60%),
+    radial-gradient(ellipse 900px 620px at 100% -5%, rgba(198, 255, 61, 0.1), transparent 60%),
+    radial-gradient(ellipse 760px 560px at -10% 105%, rgba(124, 58, 237, 0.13), transparent 60%),
+    radial-gradient(ellipse 600px 420px at 55% 45%, rgba(34, 211, 238, 0.035), transparent 70%),
     var(--background);
   background-attachment: fixed;
   color: var(--foreground);
   font-family: "Inter", -apple-system, sans-serif;
   min-height: 100vh;
+}
+
+@layer components {
+  .elev-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.01) 40%), var(--elev-1);
+    border: 1px solid var(--elev-line);
+    box-shadow: var(--elev-highlight), var(--elev-drop);
+    transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+  }
+  .elev-card:hover {
+    border-color: rgba(198, 255, 61, 0.22);
+    box-shadow: var(--elev-highlight), var(--elev-drop), var(--glow-accent);
+  }
+  .elev-tile {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)), var(--elev-2);
+    border: 1px solid var(--elev-line);
+    box-shadow: var(--elev-highlight), 0 10px 24px -16px rgba(0, 0, 0, 0.9);
+  }
+  .elev-control {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)), var(--elev-2);
+    border-color: var(--elev-line-strong);
+    box-shadow: var(--elev-highlight), 0 6px 16px -10px rgba(0, 0, 0, 0.9);
+  }
+  .elev-inset {
+    background: var(--elev-0);
+    border-color: var(--elev-line);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.55);
+  }
+  /* Pil tab aktif: lime terang dengan glow, seperti chip "Permanent" di referensi. */
+  .tab-aktif {
+    background: var(--accent);
+    color: #0a0b05;
+    box-shadow: 0 0 0 1px rgba(198, 255, 61, 0.5), 0 8px 28px -6px rgba(198, 255, 61, 0.55);
+  }
+  .judul-glow {
+    text-shadow: 0 0 28px rgba(198, 255, 61, 0.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .elev-card {
+    transition: none;
+  }
 }
 
 .font-display {
@@ -44,5 +100,7 @@ body {
     background: #fff !important;
     color: #000 !important;
     border-color: #999 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
   }
 }

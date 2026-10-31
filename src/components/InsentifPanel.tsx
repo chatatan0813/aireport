@@ -61,13 +61,13 @@ function RincianBankTimMedia({ group, totalTim }: { group: InsentifGroup; totalT
   const persenTeks = (p: number) => `${Math.round(p * 100)}%`;
 
   return (
-    <div className="mt-4 border-t border-[#1f2023] pt-3">
+    <div className="mt-4 border-t border-white/[0.07] pt-3">
       <p className="mb-2 text-xs font-medium text-slate-500">
         Rincian pembayaran per bank <span className="text-slate-600">(proporsi insentif + bonus tiap divisi)</span>
       </p>
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-[#1f2023] text-slate-500">
+          <tr className="border-b border-white/[0.07] text-slate-500">
             <th className="py-1.5 pr-3 font-medium">Divisi</th>
             <th className="py-1.5 pr-3 font-medium">Bank</th>
             <th className="py-1.5 text-right font-medium">Persentase</th>
@@ -75,7 +75,7 @@ function RincianBankTimMedia({ group, totalTim }: { group: InsentifGroup; totalT
         </thead>
         <tbody>
           {tim.divisi.map((d) => (
-            <tr key={d.divisi} className="border-b border-[#1f2023]/60">
+            <tr key={d.divisi} className="border-b border-white/[0.07]/60">
               <td className="py-1.5 pr-3 text-slate-200">{d.divisi}</td>
               <td className="py-1.5 pr-3 text-slate-300">{d.bank}</td>
               <td className="tabular py-1.5 text-right text-slate-300">{persenTeks(d.persen)}</td>
@@ -87,7 +87,7 @@ function RincianBankTimMedia({ group, totalTim }: { group: InsentifGroup; totalT
       <p className="mb-2 mt-4 text-xs font-medium text-slate-500">Pembayaran dilakukan</p>
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-[#1f2023] text-slate-500">
+          <tr className="border-b border-white/[0.07] text-slate-500">
             <th className="py-1.5 pr-3 font-medium">Bank</th>
             <th className="py-1.5 pr-3 text-right font-medium">%</th>
             {perOrang.length > 0 && <th className="py-1.5 pr-3 text-right font-medium">Per orang</th>}
@@ -96,7 +96,7 @@ function RincianBankTimMedia({ group, totalTim }: { group: InsentifGroup; totalT
         </thead>
         <tbody>
           {tim.bank.map((b, i) => (
-            <tr key={b.bank} className="border-b border-[#1f2023]/60">
+            <tr key={b.bank} className="border-b border-white/[0.07]/60">
               <td className="py-1.5 pr-3 font-medium text-slate-200">{b.bank}</td>
               <td className="tabular py-1.5 pr-3 text-right text-slate-300">{persenTeks(b.persen)}</td>
               {perOrang.length > 0 && (
@@ -126,7 +126,7 @@ function KartuDivisi({
 }) {
   const total = totalGroup(group);
   return (
-    <div className={`kartu-cetak rounded-3xl border border-[#1f2023] bg-[#111214] p-5 ${sedangCetak ? "print:hidden" : ""}`}>
+    <div className={`kartu-cetak rounded-3xl elev-card p-5 ${sedangCetak ? "print:hidden" : ""}`}>
       <div className="mb-3 hidden border-b border-black pb-2 print:block">
         <p className="font-display font-semibold">Chatatan Group</p>
         <p className="text-xs">Slip Insentif &amp; Bonus · dicetak {formatTanggal(new Date())}</p>
@@ -155,7 +155,7 @@ function KartuDivisi({
       <div className="mt-3 flex justify-end print:hidden">
         <button
           onClick={onCetak}
-          className="rounded-lg border border-[#1f2023] px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
+          className="rounded-lg border border-white/[0.07] px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
         >
           Print
         </button>
@@ -168,7 +168,7 @@ function KartuDivisi({
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-[#1f2023] text-slate-500">
+            <tr className="border-b border-white/[0.07] text-slate-500">
               <th className="py-2 pr-4 font-medium">Nama</th>
               <th className="hidden py-2 pr-4 text-right font-medium sm:table-cell print:table-cell">Insentif</th>
               <th className="hidden py-2 pr-4 text-right font-medium sm:table-cell print:table-cell">Bonus</th>
@@ -177,7 +177,7 @@ function KartuDivisi({
           </thead>
           <tbody>
             {group.pegawai.map((p, i) => (
-              <tr key={`${p.nama}-${i}`} className="border-b border-[#1f2023]/60 transition hover:bg-white/[0.02]">
+              <tr key={`${p.nama}-${i}`} className="border-b border-white/[0.07]/60 transition hover:bg-white/[0.02]">
                 <td className="py-2 pr-4">
                   <div className="font-medium text-slate-100">{p.nama}</div>
                   {(p.peran || p.basis) && (
@@ -213,11 +213,11 @@ function KartuDivisi({
       </div>
 
       {group.rincianDivisi && group.rincianDivisi.length > 0 && (
-        <div className="mt-4 overflow-x-auto border-t border-[#1f2023] pt-3">
+        <div className="mt-4 overflow-x-auto border-t border-white/[0.07] pt-3">
           <p className="mb-2 text-xs font-medium text-slate-500">Rincian per divisi</p>
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#1f2023] text-slate-500">
+              <tr className="border-b border-white/[0.07] text-slate-500">
                 <th className="py-1.5 pr-3 font-medium">Divisi</th>
                 <th className="py-1.5 pr-3 font-medium">Status</th>
                 <th className="hidden py-1.5 pr-3 text-right font-medium sm:table-cell print:table-cell">Omzet</th>
@@ -227,7 +227,7 @@ function KartuDivisi({
             </thead>
             <tbody>
               {group.rincianDivisi.map((r) => (
-                <tr key={r.divisi} className="border-b border-[#1f2023]/60">
+                <tr key={r.divisi} className="border-b border-white/[0.07]/60">
                   <td className="py-1.5 pr-3 text-slate-200">{r.divisi}</td>
                   <td className="py-1.5 pr-3">
                     <span
@@ -325,7 +325,7 @@ export default function InsentifPanel() {
             value={bulan}
             max={bulanSekarang}
             onChange={(e) => e.target.value && setBulan(e.target.value)}
-            className="rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-200 [color-scheme:dark] focus:border-lime-400/40 focus:outline-none"
+            className="rounded-xl border elev-control px-3 py-1.5 text-sm font-medium text-slate-200 [color-scheme:dark] focus:border-lime-400/40 focus:outline-none"
           />
           <p className="text-sm text-slate-400">
             {hasil ? labelBulan(hasil.bulan) : labelBulan(bulan)}
@@ -336,7 +336,7 @@ export default function InsentifPanel() {
         {hasil && hasil.groups.length > 0 && (
           <button
             onClick={() => setTerbuka(semuaTerbuka ? new Set() : new Set(hasil.groups.map(idGroup)))}
-            className="rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
+            className="rounded-xl border elev-control px-3 py-1.5 text-sm font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
           >
             {semuaTerbuka ? "Tutup semua" : "Buka semua"}
           </button>
@@ -344,7 +344,7 @@ export default function InsentifPanel() {
         <button
           onClick={() => muat(bulan)}
           disabled={sedangMuat}
-          className="shrink-0 rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300 disabled:opacity-50"
+          className="shrink-0 rounded-xl border elev-control px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300 disabled:opacity-50"
         >
           {sedangMuat ? "Memuat..." : "Refresh"}
         </button>
@@ -370,7 +370,7 @@ export default function InsentifPanel() {
               { label: "Insentif + bonus", isi: <Rupiah nilai={total.total} tebal /> },
               { label: "Penerima", isi: <span className="text-slate-300">{total.jumlahPegawai} orang</span> },
             ].map((t) => (
-              <div key={t.label} className="rounded-2xl border border-[#1f2023] bg-[#111214] px-4 py-3">
+              <div key={t.label} className="rounded-2xl elev-tile px-4 py-3">
                 <dt className="text-xs text-slate-500">{t.label}</dt>
                 <dd className="tabular font-display mt-1 text-lg font-semibold">{t.isi}</dd>
               </div>

@@ -103,7 +103,7 @@ export default function KalkulatorGaji() {
             value={bulan}
             max={bulanSekarang}
             onChange={(e) => e.target.value && setBulan(e.target.value)}
-            className="rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-200 [color-scheme:dark] focus:border-lime-400/40 focus:outline-none"
+            className="rounded-xl border elev-control px-3 py-1.5 text-sm font-medium text-slate-200 [color-scheme:dark] focus:border-lime-400/40 focus:outline-none"
           />
           <p className="text-sm text-slate-400">
             Dasar persentase: laba {bulan === bulanSekarang ? "bulan berjalan" : "satu bulan penuh"}
@@ -113,14 +113,14 @@ export default function KalkulatorGaji() {
         <div className="flex shrink-0 gap-2">
           <button
             onClick={() => window.print()}
-            className="rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
+            className="rounded-xl border elev-control px-3 py-1.5 text-sm font-medium text-slate-400 transition hover:border-lime-400/30 hover:text-lime-300"
           >
             Print
           </button>
           <button
             onClick={onRefresh}
             disabled={liveLoading}
-            className="rounded-xl border border-[#1f2023] bg-[#111214] px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300 disabled:opacity-50"
+            className="rounded-xl border elev-control px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-lime-400/30 hover:text-lime-300 disabled:opacity-50"
           >
             {liveLoading ? "Memuat..." : "Refresh"}
           </button>
@@ -139,7 +139,7 @@ export default function KalkulatorGaji() {
       )}
 
       {live && (
-        <div className="kartu-cetak overflow-x-auto rounded-3xl border border-[#1f2023] bg-[#111214] p-5">
+        <div className="kartu-cetak overflow-x-auto rounded-3xl elev-card p-5">
           <div className="mb-3 hidden border-b border-black pb-2 print:block">
             <p className="font-display font-semibold">Chatatan Group</p>
             <p className="text-xs">
@@ -148,7 +148,7 @@ export default function KalkulatorGaji() {
           </div>
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#1f2023] text-slate-500">
+              <tr className="border-b border-white/[0.07] text-slate-500">
                 <th className="py-2 pr-3 font-medium">Nama</th>
                 <th className="py-2 pr-3 font-medium">Sisa gaji</th>
                 {BANK.map((b) => (
@@ -166,10 +166,10 @@ export default function KalkulatorGaji() {
                     </td>
                   </tr>
                 )}
-                <tr className="border-b border-[#1f2023]/60 align-top">
+                <tr className="border-b border-white/[0.07]/60 align-top">
                   <td className="py-2 pr-3 font-medium text-slate-100">{r.nama}</td>
                   <td className="py-2 pr-3">
-                    <div className="flex items-center gap-1 rounded-lg border border-[#1f2023] bg-[#0a0a0c] px-2 focus-within:border-lime-400/40 print:border-0 print:bg-transparent print:px-0">
+                    <div className="flex items-center gap-1 rounded-lg border elev-inset px-2 focus-within:border-lime-400/40 print:border-0 print:bg-transparent print:px-0">
                       <span className="text-xs text-slate-500">Rp</span>
                       <input
                         inputMode="numeric"
