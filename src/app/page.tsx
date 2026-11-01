@@ -10,6 +10,7 @@ import PayrollTable from "@/components/PayrollTable";
 import InsentifPanel from "@/components/InsentifPanel";
 import KalkulatorGaji from "@/components/KalkulatorGaji";
 import GoogleRatingPanel from "@/components/GoogleRatingPanel";
+import SorotanTiles from "@/components/SorotanTiles";
 import type { SnapshotTerbaru, RiwayatEntri, PayrollEntri, PeriodeOption, Divisi } from "@/lib/transform";
 import { getPeriodeOptions, buildSnapshotForPeriode } from "@/lib/transform";
 import { formatTanggalIso } from "@/lib/tanggal";
@@ -114,7 +115,14 @@ export default function DashboardPage() {
     <div className="min-h-screen p-6 md:p-10">
       <header className="mb-6 print:hidden">
         <div className="flex items-start justify-between gap-4">
-          <h1 className="font-display judul-glow text-2xl font-semibold tracking-tight text-slate-50 md:text-3xl">AI Reporting <span className="text-lime-300">·</span> Chatatan Group</h1>
+          <h1 className="flex items-center gap-3 md:gap-5">
+            {/* Logo putih Chatatan Group menggantikan teks nama grup. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo/chatatan-group.png" alt="Chatatan Group" width={800} height={467} className="h-16 w-auto drop-shadow-[0_0_24px_rgba(198,255,61,0.18)] md:h-28" />
+            <span className="font-display judul-glow border-l border-white/[0.12] pl-3 text-lg font-semibold leading-tight tracking-tight text-slate-50 md:pl-5 md:text-2xl">
+              AI <span className="text-lime-300">Reporting</span>
+            </span>
+          </h1>
           <div className="flex shrink-0 gap-2">
           <button
             onClick={() => setTab("Riwayat")}
@@ -191,6 +199,7 @@ export default function DashboardPage() {
       >
       {tab === "Ringkasan" && snapshotDitampilkan && (
         <motion.div key={periodeKey} initial="hidden" animate="show" variants={GRID_VARIANTS} className="space-y-6">
+          <SorotanTiles divisi={snapshotDitampilkan.divisi} />
           <OmzetChart divisi={snapshotDitampilkan.divisi} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {snapshotDitampilkan.divisi.map((d, i) => (
@@ -230,6 +239,7 @@ export default function DashboardPage() {
 
           {live && live.divisi.length > 0 && (
             <motion.div initial="hidden" animate="show" variants={GRID_VARIANTS} className="space-y-6">
+              <SorotanTiles divisi={live.divisi} />
               <OmzetChart divisi={live.divisi} />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {live.divisi.map((d, i) => (
